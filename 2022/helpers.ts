@@ -14,7 +14,7 @@ export function findSharedLetter( [ first, ...rest ]: string[] ): string {
 		.filter( letter => rest.every( item => item.includes( letter ) ) )[ 0 ]
 }
 
-export function* chunks<T>( items: Iterable<T>, size: number, offset = 0 ) {
+export function* chunks<T>( items: Iterable<T>, size: number, offset = 0, leftovers = true ) {
 	const iterator = items[ Symbol.iterator ]();
 	let lastN: T[] = [];
 
@@ -35,7 +35,7 @@ export function* chunks<T>( items: Iterable<T>, size: number, offset = 0 ) {
 		}
 	}
 
-	if ( lastN.length ) {
+	if ( leftovers && lastN.length ) {
 		yield lastN;
 	}
 }
