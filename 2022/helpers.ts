@@ -11,7 +11,7 @@ export const chunker = <T>( size: number ) => ( chunks: T[][], line: T, i: numbe
 export function findSharedLetter( [ first, ...rest ]: string[] ): string {
 	return first
 		.split( '' )
-		.filter( letter => rest.every( item => item.includes( letter ) ) )[0]
+		.filter( letter => rest.every( item => item.includes( letter ) ) )[ 0 ]
 }
 
 export function* chunks<T>( items: Iterable<T>, size: number, offset = 0 ) {
