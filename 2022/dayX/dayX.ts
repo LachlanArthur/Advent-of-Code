@@ -1,13 +1,15 @@
-import '../../arrayExtensions';
+import '../../extensions';
 
 import example from './example';
 import input from './input';
 
 function part1( input: string ) {
-	
+	return input
+		.split( '\n' )
+		.log()
 }
 
-console.assert( part1( example ) === ? );
+console.assert( part1( example ) === undefined );
 
 console.log( part1( input ) );
 
@@ -15,6 +17,6 @@ console.log( part1( input ) );
 
 // }
 
-// console.assert( part2( example ) === ? );
+// console.assert( part2( example ) === undefined );
 
 // console.log( part2( input ) );
