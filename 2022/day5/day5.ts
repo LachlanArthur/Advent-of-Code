@@ -1,3 +1,5 @@
+import '../../extensions';
+
 import example from './example';
 import input from './input';
 
@@ -43,7 +45,6 @@ function parseMoves( input: string ) {
 			from: parseInt( from ) - 1,
 			to: parseInt( to ) - 1,
 		} ) )
-		;
 }
 
 function part1( input: string ) {
@@ -55,10 +56,7 @@ function part1( input: string ) {
 	}
 
 	return stacks.map( stack => stack.pop() ).join('');
-
 }
-
-console.log( part1( example ) );
 
 console.assert( part1( example ) === 'CMZ' );
 
@@ -73,7 +71,6 @@ function part2( input: string ) {
 	}
 
 	return stacks.map( stack => stack.pop() ).join('');
-
 }
 
 console.assert( part2( example ) === 'MCD' );

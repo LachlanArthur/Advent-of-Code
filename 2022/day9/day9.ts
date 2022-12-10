@@ -1,4 +1,5 @@
-import { filledArray } from '../helpers';
+import '../../extensions';
+
 import example from './example';
 import example2 from './example2';
 import input from './input';
@@ -9,11 +10,11 @@ type Pair = [ number, number ];
 
 function part1( input: string ) {
 
-	const moves = input.split( '\n' )
+	const moves: Direction[] = input.split( '\n' )
 		.flatMap( line => {
 			const [ direction, amount ] = line.split( ' ' );
-			return new Array( parseInt( amount ) ).fill( direction as Direction );
-		} ) as Direction[];
+			return Array.filled( parseInt( amount ), direction as Direction );
+		} );
 
 	let headX = 0;
 	let headY = 0;
@@ -142,15 +143,15 @@ function move( [ x, y ]: Pair, direction: Direction ): Pair {
 
 function part2( input: string ) {
 
-	const moves = input.split( '\n' )
+	const moves: Direction[] = input.split( '\n' )
 		.flatMap( line => {
 			const [ direction, amount ] = line.split( ' ' );
-			return new Array( parseInt( amount ) ).fill( direction as Direction );
-		} ) as Direction[];
+			return Array.filled( parseInt( amount ), direction as Direction );
+		} );
 
-	const knots = filledArray( 10, () => [ 0, 0 ] as Pair );
+	const knots: Pair[] = Array.filled( 10, () => [ 0, 0 ] );
 
-	const allPositions: string[][] = filledArray( knots.length, () => [] );
+	const allPositions: string[][] = Array.filled( knots.length, () => [] );
 	const tailVisited = new Set<string>();
 
 	tailVisited.add( `0,0` );

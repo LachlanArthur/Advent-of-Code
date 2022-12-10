@@ -1,4 +1,4 @@
-import { chunker, chunks, findSharedLetter, skipFirst, sum, takeFirst, takeNth } from '../helpers';
+import '../../extensions';
 
 import example from './example';
 import input from './input';
@@ -6,7 +6,7 @@ import input from './input';
 function runCycles( input: string ) {
 	const cycles: number[] = [ 1 ];
 
-	input.split( '\n' )
+	Array.fromLines( input )
 		.forEach( ( line, i, a ) => {
 			const [ instruction, value ] = line.split( ' ' );
 			const prev = cycles[ cycles.length - 1 ];
@@ -26,13 +26,13 @@ function part1( input: string ) {
 	const cycles = runCycles( input );
 
 	const signals = [
-		...takeFirst( takeNth( cycles.entries(), 20 ), 1 ),
-		...takeNth( skipFirst( cycles.entries(), 20 ), 40 ),
+		...cycles.entriesArray().takeNth( 20 ).takeFirst(),
+		...cycles.entriesArray().skipFirst( 20 ).takeNth( 40 ),
 	];
 
 	const strengths = signals.map( ( [ index, x ] ) => ( index + 1 ) * x );
 
-	return sum( strengths );
+	return strengths.sum();
 }
 
 console.assert( part1( example ) === 13140 );
@@ -44,18 +44,17 @@ function part2( input: string ) {
 
 	const screen: string[] = [];
 
-	for ( const line of chunks( cycles.entries(), 40 ) ) {
+	for ( const line of cycles.entriesArray().chunks( 40 ) ) {
 		let pixelIndex = 0;
 		for ( const [ index, x ] of line ) {
-			const cycle = index + 1;
-
-			screen[ cycle ] = pixelIndex >= x - 1 && pixelIndex <= x + 1 ? '#' : '.';
+			screen[ index ] = pixelIndex >= x - 1 && pixelIndex <= x + 1 ? '#' : '.';
 
 			pixelIndex++;
 		}
 	}
 
-	return [ ...chunks( screen, 40 ) ]
+	return screen
+		.chunks( 40 )
 		.map( chunk => chunk.join( '' ) )
 		.join( '\n' );
 }

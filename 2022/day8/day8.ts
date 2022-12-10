@@ -1,3 +1,5 @@
+import '../../extensions';
+
 import example from './example';
 import input from './input';
 
@@ -92,7 +94,7 @@ function part2( input: string ) {
 		}
 	}
 
-	return Math.max( ...treeScores );
+	return treeScores.max();
 }
 
 console.assert( part2( example ) === 8 );

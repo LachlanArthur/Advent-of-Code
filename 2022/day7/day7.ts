@@ -1,4 +1,4 @@
-import { sum } from '../helpers';
+import '../../extensions';
 
 import example from './example';
 import input from './input';
@@ -54,7 +54,7 @@ function directorySizes( filesizes: Map<string, number> ): Map<string, number> {
 	}
 
 	const directorySizes = new Map<string, number>(
-		Array.from( directories.values() )
+		directories.valuesArray()
 			.map( dir => [ dir, 0 ] )
 	);
 
@@ -78,11 +78,10 @@ function part1( input: string ): number {
 	// console.table( filesizes );
 	// console.table( directorySizes );
 
-	return sum(
-		Array.from( directorySizes.entries() )
-			.filter( ( [ path, size ] ) => size <= 100000 )
-			.map( ( [ path, size ] ) => size )
-	);
+	return directorySizes.entriesArray()
+		.filter( ( [ path, size ] ) => size <= 100000 )
+		.map( ( [ path, size ] ) => size )
+		.sum()
 }
 
 console.assert( part1( example ) === 95437 );
@@ -104,7 +103,7 @@ function part2( input: string ) {
 	const unused = driveSize - used;
 	const toDelete = needed - unused;
 
-	const largeDirs = Array.from( directorySizes.entries() )
+	const largeDirs = directorySizes.entriesArray()
 		.filter( ( [ path, size ] ) => size >= toDelete );
 
 	return largeDirs

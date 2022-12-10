@@ -1,12 +1,12 @@
-import { chunker, chunks, findSharedLetter, sum } from '../helpers';
+import '../../extensions';
 
 import example from './example';
 import input from './input';
 
 function part1( input: string, size = 4 ): number {
-	return Array.from(
-		chunks( input.split( '' ), size, - size + 1 )
-	)
+	return input
+		.split( '' )
+		.chunks( size, -size + 1 )
 		.map( ( chunk, index ) => new Set( chunk ).size === size ? index + size : null )
 		.filter( Number )
 	[ 0 ] as number

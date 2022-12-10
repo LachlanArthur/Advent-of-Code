@@ -1,4 +1,4 @@
-import { byNumberDesc, sum } from '../helpers';
+import '../../extensions';
 
 import example from './example';
 import input from './input';
@@ -6,8 +6,12 @@ import input from './input';
 function totals( input: string ): number[] {
 	return input
 		.split( '\n\n' )
-		.map( lines => sum( lines.split( '\n' ).map( Number ) ) )
-		.sort( byNumberDesc );
+		.map( lines => lines
+			.split( '\n' )
+			.map( Number )
+			.sum()
+		)
+		.sortByNumberDesc();
 }
 
 function part1( input: string ): number {
@@ -15,13 +19,15 @@ function part1( input: string ): number {
 }
 
 function part2( input: string ): number {
-	return sum(
-		totals( input ).slice( 0, 3 )
-	);
+	return totals( input )
+		.takeFirst( 3 )
+		.sum();
 }
 
-console.log( part1( example ) )
+console.assert( part1( example ) === 24000 )
 
 console.log( part1( input ) )
+
+console.assert( part2( example ) === 45000 )
 
 console.log( part2( input ) )

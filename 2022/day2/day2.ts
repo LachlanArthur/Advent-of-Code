@@ -1,4 +1,4 @@
-import { sum } from '../helpers';
+import '../../extensions';
 
 import example from './example';
 import input from './input';
@@ -33,15 +33,15 @@ const scores = {
 	},
 }
 
-const part1 = ( input: string ) => sum(
+const part1 = ( input: string ) =>
 	input.split( '\n' )
 		.map( line => {
 			const [ them, us ] = line.split( ' ' );
 			return scores[ them ][ us ]
 		} )
-);
+		.sum()
 
-console.log( part1( example ) )
+console.assert( part1( example ) === 15 )
 
 console.log( part1( input ) )
 
@@ -75,14 +75,14 @@ const outcomes = {
 	},
 }
 
-const part2 = ( input: string ) => sum(
+const part2 = ( input: string ) =>
 	input.split( '\n' )
 		.map( line => {
 			const [ them, us ] = line.split( ' ' );
 			return outcomes[ them ][ us ]
 		} )
-)
+		.sum()
 
-console.log( part2( example ) )
+console.assert( part2( example ) === 12 )
 
 console.log( part2( input ) )

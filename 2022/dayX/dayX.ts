@@ -1,4 +1,4 @@
-import { chunker, findSharedLetter, sum } from '../helpers';
+import '../../arrayExtensions';
 
 import example from './example';
 import input from './input';

@@ -1,3 +1,5 @@
+import '../../extensions';
+
 import example from "./example";
 import input from "./input";
 
@@ -41,7 +43,7 @@ function part1( input: string, steps: number ) {
 
 	const counts = Object.values( countLetters( final ) );
 
-	return Math.max( ...counts ) - Math.min( ...counts );
+	return counts.max() - counts.min();
 }
 
 function applyRulesToString( template: string, rules: Rules ): string {
@@ -111,9 +113,9 @@ function part2( input: string, steps = 10 ): number {
 	console.table( letterCounts );
 	console.groupEnd();
 
-	const counts = Array.from( letterCounts.values() );
+	const counts = letterCounts.valuesArray();
 
-	return Math.max( ...counts ) - Math.min( ...counts );
+	return counts.max() - counts.min();
 }
 
 function expandPairs( previousCounts: Map<string, number>, rules: Rules ): Map<string, number> {
@@ -142,15 +144,18 @@ function countPairs( input: string ): Map<string, number> {
 }
 
 function makePairs( input: string ) {
-	return [
-		...input.match( /../g )!,
-		...input.slice( 1 ).match( /../g )!,
-	];
+	return input.split( '' )
+		.chunks( 2, -1, false )
+		.map( pair => pair.join( '' ) )
 }
 
 const exampleOut2 = part2( example, 10 );
 console.log( exampleOut2 );
 console.assert( exampleOut2 === 1588 );
+
+const exampleOut3 = part2( example, 40 );
+console.log( exampleOut3 );
+console.assert( exampleOut3 === 2188189693529 );
 
 console.time( 'part2' );
 console.log( part2( input, 40 ) );
