@@ -1,3 +1,5 @@
+type KeysWithValsOfType<T, V> = keyof { [ P in keyof T as T[ P ] extends V ? P : never ]: P } & keyof T;
+
 declare global {
 	interface Array<T> {
 		log( message?: string ): this;
@@ -28,8 +30,11 @@ declare global {
 		product( this: number[] ): number;
 		sortByNumberAsc( this: number[] ): T[];
 		sortByNumberDesc( this: number[] ): T[];
+		sortByNumberAsc<K extends KeysWithValsOfType<T, number>>( this: T[], property: K ): T[];
+		sortByNumberDesc<K extends KeysWithValsOfType<T, number>>( this: T[], property: K ): T[];
 		max( this: number[] ): number;
 		min( this: number[] ): number;
+		pluck<K extends keyof T>( this: T[], property: K ): T[ K ][];
 	}
 
 	interface ArrayConstructor {
@@ -245,12 +250,20 @@ Array.prototype.product = function ( this: number[] ) {
 	return product;
 }
 
-Array.prototype.sortByNumberAsc = function ( this: number[] ) {
-	return this.sort( ( a: number, b: number ): number => a - b );
+Array.prototype.sortByNumberAsc = function ( this: any[], property?: string ) {
+	if ( property ) {
+		return this.sort( ( a, b ): number => a[ property ] - b[ property ] );
+	} else {
+		return this.sort( ( a, b ): number => a - b );
+	}
 }
 
-Array.prototype.sortByNumberDesc = function ( this: number[] ) {
-	return this.sort( ( a: number, b: number ): number => b - a );
+Array.prototype.sortByNumberDesc = function ( this: any[], property?: string ) {
+	if ( property ) {
+		return this.sort( ( a, b ): number => b[ property ] - a[ property ] );
+	} else {
+		return this.sort( ( a, b ): number => b - a );
+	}
 }
 
 Array.prototype.max = function ( this: number[] ) {
@@ -259,6 +272,10 @@ Array.prototype.max = function ( this: number[] ) {
 
 Array.prototype.min = function ( this: number[] ) {
 	return Math.min( ...this );
+}
+
+Array.prototype.pluck = function ( property: string | number | symbol ) {
+	return this.map( item => item[ property ] )
 }
 
 Array.fromLines = function ( lines: string ) {

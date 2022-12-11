@@ -145,7 +145,8 @@ function part1( monkeys: Monkey[], rounds: number, worryDecreaser: ( worry: numb
 		}
 	}
 
-	return monkeys.map( monkey => monkey.inspectCount )
+	return monkeys
+		.pluck( 'inspectCount' )
 		.sortByNumberDesc()
 		.takeFirst( 2 )
 		.product()
@@ -158,7 +159,7 @@ console.assert( part1( exampleMonkeys(), 20, part1WorryDecreaser ) === 10605 );
 console.log( part1( inputMonkeys(), 20, part1WorryDecreaser ) );
 
 const part2WorryDecreaser = ( monkeys: Monkey[] ) => {
-	const modulus = monkeys.map( monkey => monkey.modulus ).product();
+	const modulus = monkeys.pluck( 'modulus' ).product();
 	return ( x: number ) => x %= modulus;
 }
 
