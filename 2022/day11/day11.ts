@@ -1,7 +1,7 @@
 import '../../extensions';
 
-// import * as example from './example';
-// import input, { monkeys } from './input';
+// import example from './example';
+// import input from './input';
 
 export class Monkey {
 	public inspectCount = 0;
@@ -9,12 +9,16 @@ export class Monkey {
 	constructor(
 		public items: number[],
 		public operation: ( old: number ) => number,
-		public test: ( worry: number ) => boolean,
+		public modulus: number,
 		public trueMonkey: number,
 		public falseMonkey: number,
 	) { }
 
-	turn(): Record<string, number[]> {
+	test( item: number ) {
+		return item % this.modulus === 0;
+	}
+
+	turn( worryDecreaser: ( worry: number ) => number ): Record<string, number[]> {
 		const throws = {};
 
 		for ( const item of this.items ) {
@@ -26,18 +30,11 @@ export class Monkey {
 			newValue = this.operation( item );
 
 			// Decrease worry
+			newValue = worryDecreaser( newValue );
 
-			// Part 1 decreaser
-			newValue = Math.floor( newValue / 3 );
-
-			// Part 2 decreaser - example
-			// newValue %= 23 * 19 * 13 * 17;
-
-			// Part 2 decreaser
-			// newValue %= 7 * 11 * 13 * 3 * 17 * 2 * 5 * 19;
-
-			// Throw
+			// Throw item
 			const target = this.test( newValue ) ? this.trueMonkey : this.falseMonkey;
+
 			( throws[ target ] ??= [] ).push( newValue );
 		}
 
@@ -47,102 +44,100 @@ export class Monkey {
 	}
 }
 
-export const exampleMonkeys = [
+const exampleMonkeys = () => [
 	new Monkey(
 		[ 79, 98 ],
 		old => old * 19,
-		worry => worry % 23 === 0,
+		23,
 		2,
 		3,
 	),
 	new Monkey(
 		[ 54, 65, 75, 74 ],
 		old => old + 6,
-		worry => worry % 19 === 0,
+		19,
 		2,
 		0,
 	),
 	new Monkey(
 		[ 79, 60, 97 ],
 		old => old * old,
-		worry => worry % 13 === 0,
+		13,
 		1,
 		3,
 	),
 	new Monkey(
 		[ 74 ],
 		old => old + 3,
-		worry => worry % 17 === 0,
+		17,
 		0,
 		1,
 	),
 ]
 
-export const inputMonkeys = [
+const inputMonkeys = () => [
 	new Monkey(
 		[ 63, 57 ],
 		( old ) => old * 11,
-		( worry ) => worry % 7 === 0,
+		7,
 		6,
 		2,
 	),
 	new Monkey(
 		[ 82, 66, 87, 78, 77, 92, 83 ],
 		( old ) => old + 1,
-		( worry ) => worry % 11 === 0,
+		11,
 		5,
 		0,
 	),
 	new Monkey(
 		[ 97, 53, 53, 85, 58, 54 ],
 		( old ) => old * 7,
-		( worry ) => worry % 13 === 0,
+		13,
 		4,
 		3,
 	),
 	new Monkey(
 		[ 50 ],
 		( old ) => old + 3,
-		( worry ) => worry % 3 === 0,
+		3,
 		1,
 		7,
 	),
 	new Monkey(
 		[ 64, 69, 52, 65, 73 ],
 		( old ) => old + 6,
-		( worry ) => worry % 17 === 0,
+		17,
 		3,
 		7,
 	),
 	new Monkey(
 		[ 57, 91, 65 ],
 		( old ) => old + 5,
-		( worry ) => worry % 2 === 0,
+		2,
 		0,
 		6,
 	),
 	new Monkey(
 		[ 67, 91, 84, 78, 60, 69, 99, 83 ],
 		( old ) => old * old,
-		( worry ) => worry % 5 === 0,
+		5,
 		2,
 		4,
 	),
 	new Monkey(
 		[ 58, 78, 69, 65 ],
 		( old ) => old + 7,
-		( worry ) => worry % 19 === 0,
+		19,
 		5,
 		1,
 	),
 ]
 
-function part1( monkeys: Monkey[] ) {
-	const rounds = 20;
-
+function part1( monkeys: Monkey[], rounds: number, worryDecreaser: ( worry: number ) => number ) {
 	for ( let i = 0; i < rounds; i++ ) {
-		for ( const [ monkeyIndex, monkey ] of monkeys.entries() ) {
-			const throws = monkey.turn();
+		for ( const monkey of monkeys ) {
+			const throws = monkey.turn( worryDecreaser );
 
 			for ( const [ throwIndex, items ] of Object.entries( throws ) as [ string, number[] ][] ) {
 				monkeys[ parseInt( throwIndex ) ].items.push( ...items );
@@ -156,29 +151,17 @@ function part1( monkeys: Monkey[] ) {
 		.product()
 }
 
-console.assert( part1( exampleMonkeys ) === 10605 );
+const part1WorryDecreaser = ( x: number ) => Math.floor( x / 3 );
 
-console.log( part1( inputMonkeys ) );
+console.assert( part1( exampleMonkeys(), 20, part1WorryDecreaser ) === 10605 );
 
-function part2( monkeys: Monkey[] ) {
-	const rounds = 10000;
+console.log( part1( inputMonkeys(), 20, part1WorryDecreaser ) );
 
-	for ( let i = 0; i < rounds; i++ ) {
-		for ( const [ monkeyIndex, monkey ] of monkeys.entries() ) {
-			const throws = monkey.turn();
-
-			for ( const [ throwIndex, items ] of Object.entries( throws ) as [ string, number[] ][] ) {
-				monkeys[ parseInt( throwIndex ) ].items.push( ...items );
-			}
-		}
-	}
-
-	return monkeys.map( monkey => monkey.inspectCount )
-		.sortByNumberDesc()
-		.takeFirst( 2 )
-		.product()
+const part2WorryDecreaser = ( monkeys: Monkey[] ) => {
+	const modulus = monkeys.map( monkey => monkey.modulus ).product();
+	return ( x: number ) => x %= modulus;
 }
 
-console.assert( part2( exampleMonkeys ) === 2713310158 );
+console.assert( part1( exampleMonkeys(), 10000, part2WorryDecreaser( exampleMonkeys() ) ) === 2713310158 );
 
-console.log( part2( inputMonkeys ) );
+console.log( part1( inputMonkeys(), 10000, part2WorryDecreaser( inputMonkeys() ) ) );
