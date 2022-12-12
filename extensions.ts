@@ -35,6 +35,7 @@ declare global {
 		max( this: number[] ): number;
 		min( this: number[] ): number;
 		pluck<K extends keyof T>( this: T[], property: K ): T[ K ][];
+		tee<T>( this: T[], callback: ( items: T[] ) => void ): T[];
 	}
 
 	interface ArrayConstructor {
@@ -276,6 +277,12 @@ Array.prototype.min = function ( this: number[] ) {
 
 Array.prototype.pluck = function ( property: string | number | symbol ) {
 	return this.map( item => item[ property ] )
+}
+
+Array.prototype.tee = function <T>( this: T[], callback: ( items: T[] ) => void ): T[] {
+	callback( this );
+
+	return this;
 }
 
 Array.fromLines = function ( lines: string ) {
