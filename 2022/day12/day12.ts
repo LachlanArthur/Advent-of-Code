@@ -99,7 +99,7 @@ function findPath( start: Vertex, end: Vertex ) {
 		while ( openSet.size > 0 ) {
 			const current = openSet.valuesArray()
 				.sort( ( a, b ) => fScore.get( a )! - fScore.get( b )! )
-				.pop()!;
+				.shift()!;
 
 			const currentGScore = gScore.get( current )!;
 
