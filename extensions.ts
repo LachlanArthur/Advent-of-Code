@@ -36,6 +36,9 @@ declare global {
 		min( this: number[] ): number;
 		pluck<K extends keyof T>( this: T[], property: K ): T[ K ][];
 		tee<T>( this: T[], callback: ( items: T[] ) => void ): T[];
+		prepend<T>( this: T[], ...items: T[] ): T[];
+		append<T>( this: T[], ...items: T[] ): T[];
+		same<T>( this: T[], other: T[] ): boolean;
 	}
 
 	interface ArrayConstructor {
@@ -44,6 +47,7 @@ declare global {
 		fromRange( start: number, end: number, step?: number ): number[];
 		filled<T>( count: number, filler: T | ( ( value: undefined, index: number, array: undefined[] ) => T ) ): T[];
 		intersect<T>( ...arrays: T[] ): T;
+		same<T>( a: T[], b: T[] ): boolean;
 	}
 
 	interface Map<K, V> {
@@ -285,6 +289,22 @@ Array.prototype.tee = function <T>( this: T[], callback: ( items: T[] ) => void 
 	return this;
 }
 
+Array.prototype.prepend = function <T>( this: T[], ...items: T[] ) {
+	this.unshift( ...items );
+
+	return this;
+}
+
+Array.prototype.append = function <T>( this: T[], ...items: T[] ) {
+	this.push( ...items );
+
+	return this;
+}
+
+Array.prototype.same = function <T>( this: T[], other: T[] ) {
+	return Array.same( this, other );
+}
+
 Array.fromLines = function ( lines: string ) {
 	return collect( lines.split( '\n' ) );
 }
@@ -315,6 +335,20 @@ Array.filled = function <T>( count: number, filler: T | ( ( value: undefined, in
 
 Array.intersect = function <T>( ...arrays: T[] ) {
 	return arrays.intersectChunks();
+}
+
+Array.same = function <T>( a: T[], b: T[] ) {
+	if ( a.length !== b.length ) return false;
+
+	return a.every( ( aValue, index ) => {
+		const bValue = b[ index ];
+
+		if ( Array.isArray( aValue ) && Array.isArray( bValue ) ) {
+			return Array.same( aValue, bValue );
+		}
+
+		return aValue === bValue;
+	} );
 }
 
 Map.prototype.entriesArray = function () {
