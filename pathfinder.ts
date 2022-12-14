@@ -1,3 +1,4 @@
+import "./extensions";
 import { Cell, Grid } from "./grid";
 
 export interface Vertex {

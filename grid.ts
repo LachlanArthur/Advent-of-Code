@@ -1,3 +1,5 @@
+import "./extensions";
+
 export class Cell<T> {
 	#grid: Grid<T>;
 
