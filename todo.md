@@ -1,2 +1,1 @@
-- character range generator
 - display a grid using braille characters
