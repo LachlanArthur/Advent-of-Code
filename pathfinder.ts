@@ -1,3 +1,4 @@
+import { renderBrailleGrid } from "./debug";
 import "./extensions";
 import { Cell, Grid } from "./grid";
 
@@ -82,21 +83,8 @@ export class AStarGrid<T extends any, V extends GridVertex<T>> extends AStar<V> 
 	/**
 	 * Render the given path to the console
 	 */
-	display( path: V[], filled = '█', blank = '░' ) {
-		const grid: string[][] = [];
-
-		for ( const { x, y } of path ) {
-			( grid[ y ] ??= [] )[ x ] = filled;
-		}
-
-		const maxWidth = Math.max( ...grid.pluck( 'length' ) );
-
-		console.log(
-			grid
-				.map( row => Array.filled( maxWidth, ( _, i ) => row[ i ] ?? blank ) )
-				.map( row => row.join( '' ) )
-				.join( '\n' )
-		)
+	display( path: V[] ) {
+		renderBrailleGrid( Array.filledFromCoordinates( path.map( vertex => [ vertex.x, vertex.y ] ), () => true, false ) as boolean[][] );
 	}
 
 	/**

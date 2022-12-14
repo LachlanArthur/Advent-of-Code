@@ -46,7 +46,7 @@ function part1( input: string ) {
 
 	const path = pathfinder.path( start, end );
 
-	// pathfinder.display( path );
+	pathfinder.display( path );
 
 	return path.length - 1;
 }
@@ -63,10 +63,10 @@ function part2( input: string ) {
 		.map( vertex => pathfinder.path( vertex, end ) )
 		.filter( path => path.length > 0 )
 		.sort( ( a, b ) => a.length - b.length );
-	
+
 	const shortest = paths.shift()!;
 
-	// pathfinder.display( shortest );
+	pathfinder.display( shortest );
 
 	return shortest.length - 1;
 }

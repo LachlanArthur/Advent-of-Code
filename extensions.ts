@@ -49,6 +49,7 @@ declare global {
 		fromChars( input: string ): string[];
 		fromRange( start: number, end: number, step?: number ): number[];
 		filled<T>( count: number, filler: T | ( ( value: undefined, index: number, array: undefined[] ) => T ) ): T[];
+		filledFromCoordinates<T>( coords: [ number, number ][], filler: ( coord: [ number, number ] ) => T, blank?: T ): ( T | undefined )[][];
 		intersect<T>( ...arrays: T[] ): T;
 		same<T>( a: T[], b: T[] ): boolean;
 		zipEntries<K, V>( keys: K[], values: V[], fill?: V ): [ K, V ][];
@@ -349,6 +350,18 @@ Array.filled = function <T>( count: number, filler: T | ( ( value: undefined, in
 	}
 
 	return output.fill( filler );
+}
+
+Array.filledFromCoordinates = function <T>( coords: [ number, number ][], filler: ( coord: [ number, number ] ) => T, blank?: T ): ( T | undefined )[][] {
+	const grid: T[][] = [];
+
+	for ( const [ x, y ] of coords ) {
+		( grid[ y ] ??= [] )[ x ] = filler( [ x, y ] );
+	}
+
+	const maxWidth = Math.max( ...grid.pluck( 'length' ) );
+
+	return grid.map( row => Array.filled( maxWidth, ( _, i ) => row[ i ] ?? blank ) )
 }
 
 Array.intersect = function <T>( ...arrays: T[] ) {
