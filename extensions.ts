@@ -25,7 +25,8 @@ declare global {
 		 * Chunk into specific sizes
 		 */
 		partitionBy( sizes: number[], leftovers?: boolean ): T[][];
-		transpose(): T[][];
+		transpose<T, U>( this: [ T[], U[] ] ): [ T, U ][];
+		transpose<T, U>( this: [ T, U ][] ): [ T[], U[] ] | [];
 		sum( this: number[] ): number;
 		product( this: number[] ): number;
 		sortByNumberAsc( this: number[] ): T[];
@@ -39,6 +40,8 @@ declare global {
 		prepend<T>( this: T[], ...items: T[] ): T[];
 		append<T>( this: T[], ...items: T[] ): T[];
 		same<T>( this: T[], other: T[] ): boolean;
+		fillEmpty<T>( this: T[], value?: T ): T[];
+		pad<T>( this: T[], length: number, value: T | ( () => T ) ): T[];
 	}
 
 	interface ArrayConstructor {
@@ -48,12 +51,17 @@ declare global {
 		filled<T>( count: number, filler: T | ( ( value: undefined, index: number, array: undefined[] ) => T ) ): T[];
 		intersect<T>( ...arrays: T[] ): T;
 		same<T>( a: T[], b: T[] ): boolean;
+		zipEntries<K, V>( keys: K[], values: V[], fill?: V ): [ K, V ][];
 	}
 
 	interface Map<K, V> {
 		entriesArray(): [ K, V ][];
 		keysArray(): K[];
 		valuesArray(): V[];
+	}
+
+	interface MapConstructor {
+		zip<K, V>( keys: K[], values: V[], fill?: V ): Map<K, V>;
 	}
 
 	interface Set<T> {
@@ -218,13 +226,13 @@ Array.prototype.partitionBy = function <T>( this: T[], sizes: number[], leftover
 	return output;
 }
 
-Array.prototype.transpose = function <T>( this: T[][] ) {
+Array.prototype.transpose = function ( fill?: any ) {
 	const colCount = this.length;
-	const rowCount = this[ 0 ]?.length;
+	const rowCount = Math.min( ...this.pluck( 'length' ) );
 
 	if ( rowCount === 0 || colCount === 0 ) return [];
 
-	const output = Array.filled( rowCount, () => [] as T[] );
+	const output = Array.filled( rowCount, () => [] as any );
 
 	for ( let row = 0; row < rowCount; row++ ) {
 		for ( let col = 0; col < colCount; col++ ) {
@@ -232,7 +240,7 @@ Array.prototype.transpose = function <T>( this: T[][] ) {
 		}
 	}
 
-	return output;
+	return output as any;
 }
 
 Array.prototype.sum = function ( this: number[] ) {
@@ -305,6 +313,16 @@ Array.prototype.same = function <T>( this: T[], other: T[] ) {
 	return Array.same( this, other );
 }
 
+Array.prototype.pad = function <T>( this: T[], length: number, value: T | ( () => T ) ) {
+	const extra = Math.max( length, this.length ) - this.length;
+
+	if ( extra > 0 ) {
+		this.push( ...Array.filled( extra, value ) );
+	}
+
+	return this;
+}
+
 Array.fromLines = function ( lines: string ) {
 	return collect( lines.split( '\n' ) );
 }
@@ -351,6 +369,13 @@ Array.same = function <T>( a: T[], b: T[] ) {
 	} );
 }
 
+Array.zipEntries = function <K, V>( keys: K[], values: V[], fill?: V ): [ K, V ][] {
+	return ( [
+		keys,
+		values.pad( keys.length, fill ),
+	] as [ K[], V[] ] ).transpose();
+}
+
 Map.prototype.entriesArray = function () {
 	return Array.from( this.entries() );
 }
@@ -361,6 +386,10 @@ Map.prototype.keysArray = function () {
 
 Map.prototype.valuesArray = function () {
 	return Array.from( this.values() );
+}
+
+Map.zip = function <K, V>( keys: K[], values: V[], fill?: V ): Map<K, V> {
+	return new Map( Array.zipEntries( keys, values, fill ) );
 }
 
 Set.prototype.entriesArray = function () {
