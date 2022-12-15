@@ -31,8 +31,8 @@ declare global {
 		product( this: number[] ): number;
 		sortByNumberAsc( this: number[] ): T[];
 		sortByNumberDesc( this: number[] ): T[];
-		sortByNumberAsc<K extends KeysWithValsOfType<T, number>>( this: T[], property: K ): T[];
-		sortByNumberDesc<K extends KeysWithValsOfType<T, number>>( this: T[], property: K ): T[];
+		sortByNumberAsc<T, K extends KeysWithValsOfType<T, number>>( this: T[], property: K ): T[];
+		sortByNumberDesc<T, K extends KeysWithValsOfType<T, number>>( this: T[], property: K ): T[];
 		max( this: number[] ): number;
 		min( this: number[] ): number;
 		pluck<K extends keyof T>( this: T[], property: K ): T[ K ][];
@@ -42,6 +42,8 @@ declare global {
 		same<T>( this: T[], other: T[] ): boolean;
 		fillEmpty<T>( this: T[], value?: T ): T[];
 		pad<T>( this: T[], length: number, value: T | ( () => T ) ): T[];
+		filterExists<T>( this: ( T | undefined | null )[] ): T[];
+		groupBy<T, K extends keyof T>( this: T[], property: K ): Map<T[ K ], T[]>;
 	}
 
 	interface ArrayConstructor {
@@ -59,6 +61,8 @@ declare global {
 		entriesArray(): [ K, V ][];
 		keysArray(): K[];
 		valuesArray(): V[];
+		increment<K>( this: Map<K, number>, key: K, amount?: number ): Map<K, number>;
+		decrement<K>( this: Map<K, number>, key: K, amount?: number ): Map<K, number>;
 	}
 
 	interface MapConstructor {
@@ -324,6 +328,31 @@ Array.prototype.pad = function <T>( this: T[], length: number, value: T | ( () =
 	return this;
 }
 
+Array.prototype.filterExists = function <T>( this: ( T | undefined | null )[] ): T[] {
+	const items: T[] = [];
+
+	for ( const item of this ) {
+		if ( item === null || typeof item === 'undefined' ) continue;
+		items.push( item );
+	}
+
+	return items;
+}
+
+Array.prototype.groupBy = function ( this, property ) {
+	const groups = new Map();
+
+	for ( const item of this ) {
+		if ( !groups.has( item[ property ] ) ) {
+			groups.set( item[ property ], [ item ] );
+		} else {
+			groups.get( item[ property ] )!.push( item );
+		}
+	}
+
+	return groups;
+}
+
 Array.fromLines = function ( lines: string ) {
 	return collect( lines.split( '\n' ) );
 }
@@ -399,6 +428,18 @@ Map.prototype.keysArray = function () {
 
 Map.prototype.valuesArray = function () {
 	return Array.from( this.values() );
+}
+
+Map.prototype.increment = function <K>( this: Map<K, number>, key: K, amount = 1 ): Map<K, number> {
+	this.set( key, ( this.get( key ) ?? 0 ) + amount );
+
+	return this;
+}
+
+Map.prototype.decrement = function <K>( this: Map<K, number>, key: K, amount = 1 ): Map<K, number> {
+	this.set( key, ( this.get( key ) ?? 0 ) - amount );
+
+	return this;
 }
 
 Map.zip = function <K, V>( keys: K[], values: V[], fill?: V ): Map<K, V> {
