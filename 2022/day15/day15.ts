@@ -1,5 +1,5 @@
 import '../../extensions';
-import { Interval } from '../../interval';
+import { Interval, combineIntervals } from '../../interval';
 import { manhattan } from '../../grid'
 
 import example from './example';
@@ -38,10 +38,10 @@ class Sensor {
 
 		if ( rangeAtY < 0 ) return undefined;
 
-		return new Interval(
+		return [
 			this.x - rangeAtY,
 			this.x + rangeAtY,
-		);
+		];
 	}
 }
 
@@ -81,11 +81,11 @@ console.log( part1( input, 2000000 ) );
 function part2( input: string, searchRange: number ) {
 	const sensors = parse( input );
 
-	const boundingIntervalA = new Interval( 0, 0 );
-	const boundingIntervalB = new Interval( searchRange, searchRange );
+	const boundingIntervalA: Interval = [ 0, 0 ];
+	const boundingIntervalB: Interval = [ searchRange, searchRange ];
 
 	for ( let y = 0; y <= searchRange; y++ ) {
-		const ranges = Interval.combine(
+		const ranges = combineIntervals(
 			[
 				boundingIntervalA,
 				...sensors
@@ -101,7 +101,7 @@ function part2( input: string, searchRange: number ) {
 		}
 
 		if ( ranges.length === 2 ) {
-			const x = ranges[ 0 ].b + 1;
+			const x = ranges[ 0 ][ 1 ] + 1;
 			console.log( 'Found hole at', { x, y } );
 			return x * 4000000 + y;
 		}

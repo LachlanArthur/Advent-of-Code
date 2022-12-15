@@ -1,72 +1,51 @@
 import './extensions';
 
-type Point = [ number, number ];
+export type Interval = [ number, number ];
 
-interface End { value: number }
-class EndA implements End { constructor( public value: number ) { } }
-class EndB implements End { constructor( public value: number ) { } }
+export function intervalsFullyOverlap( a: Interval, b: Interval ) {
+	return ( a[ 0 ] >= b[ 0 ] && a[ 1 ] <= b[ 1 ] )
+		|| ( a[ 0 ] <= b[ 0 ] && a[ 1 ] >= b[ 1 ] );
+}
 
-export class Interval {
+export function intervalsPartiallyOverlap( a: Interval, b: Interval ) {
+	return ( a[ 0 ] >= b[ 0 ] && a[ 0 ] <= b[ 1 ] )
+		|| ( a[ 1 ] >= b[ 0 ] && a[ 1 ] <= b[ 1 ] )
+		|| ( b[ 0 ] >= a[ 0 ] && b[ 0 ] <= a[ 1 ] )
+		|| ( b[ 1 ] >= a[ 0 ] && b[ 1 ] <= a[ 1 ] );
+}
 
-	constructor(
-		public a: number,
-		public b: number,
-	) { }
+export function intervalsAreAdjacent( a: Interval, b: Interval ): boolean {
+	return b[ 1 ] + 1 === a[ 0 ] || a[ 1 ] + 1 === b[ 0 ];
+}
 
-	toArray(): Point {
-		return [ this.a, this.b ];
-	}
+export function combineIntervals( intervals: Interval[], adjacent = false ) {
+	intervals = intervals.sortByNumberAsc( '0' );
 
-	static combine( intervals: Interval[], adjacent = false ): Interval[] {
-		const endGroups = intervals
-			.flatMap( ( { a, b } ) => [ new EndA( a ), new EndB( b ) ] )
-			.groupBy( 'value' )
-			.entriesArray()
-			.sortByNumberAsc( '0' )
-			.map( ( [ key, value ] ) => [ key, value.sort( ( a, b ) => {
-				if ( a instanceof EndA && b instanceof EndA ) return 0;
-				if ( a instanceof EndB && b instanceof EndB ) return 0;
-				if ( a instanceof EndA && b instanceof EndB ) return -1;
-				return 1;
-			} ) ] as [ number, End[] ] )
+	const combined: Interval[] = [];
+	const merged = new Set<number>();
 
-		const output: Interval[] = []
+	for ( let index = 0; index < intervals.length; index++ ) {
+		if ( merged.has( index ) ) continue;
 
-		let depth = 0;
-		let valueA: number | undefined;
-		for ( const [ value, ends ] of endGroups ) {
-			for ( const end of ends ) {
-				if ( end instanceof EndA ) {
-					if ( !valueA ) {
-						valueA = end.value;
-					}
-					depth++;
-				}
-				if ( end instanceof EndB ) {
-					depth--;
-				}
-			}
+		let interval = intervals[ index ];
 
-			if ( depth === 0 ) {
-				output.push( new Interval( valueA!, value ) );
-				valueA = undefined;
+		for ( let nextIndex = index + 1; nextIndex < intervals.length; nextIndex++ ) {
+			if ( merged.has( nextIndex ) ) continue;
+
+			const nextInterval = intervals[ nextIndex ];
+
+			if ( intervalsPartiallyOverlap( interval, nextInterval ) || ( adjacent && intervalsAreAdjacent( interval, nextInterval ) ) ) {
+				interval = [
+					Math.min( interval[ 0 ], nextInterval[ 0 ] ),
+					Math.max( interval[ 1 ], nextInterval[ 1 ] ),
+				];
+
+				merged.add( nextIndex );
 			}
 		}
 
-		if ( adjacent ) {
-			return output
-				.reduce( ( output, interval ) => {
-					if ( output[ output.length - 1 ]?.b === interval.a - 1 ) {
-						const last = output.pop()!;
-						output.push( new Interval( last.a, interval.b ) );
-					} else {
-						output.push( interval );
-					}
-					return output;
-				}, [] as Interval[] );
-		}
-
-		return output;
+		combined.push( interval );
 	}
 
+	return combined;
 }
