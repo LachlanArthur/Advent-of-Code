@@ -80,7 +80,21 @@ function setup( input: string ) {
 
 	const renderLines = ( lines: number[] ) => {
 		console.log(
-			lines.map( ( x, i ) => ( '#' + i.toString() ).padStart( 5, ' ' ) + ' ' + x.toString( 2 ).padStart( 9, '0' ) + ` (${x})` )
+			lines.map( ( x, i ) =>
+				( '#' + i.toString() ).padStart( 5, ' ' ) +
+				' ' +
+				(
+					i === 0
+						? '▙▄▄▄▄▄▄▄▟'
+						: x.toString( 2 )
+							.padStart( 9, '0' )
+							.replace( /^1/, '▌' )
+							.replace( /1$/, '▐' )
+							.replaceAll( '0', ' ' )
+							.replaceAll( '1', '█' )
+				) +
+				` (${x})`
+			)
 				.reverse()
 				.join( '\n' )
 		);
@@ -127,6 +141,7 @@ function part1( input: string, maxRocks: number ) {
 	const {
 		edgeMask,
 		chasm,
+		renderLines,
 		addRock,
 	} = setup( input );
 
@@ -146,7 +161,7 @@ console.assert( part1( example, 2022 ) === 3068 );
 console.timeEnd( 'part1 example' );
 
 console.time( 'part1 input' );
-console.log( part1( input, 2022 ) );
+console.log( 'part1 result', part1( input, 2022 ) );
 console.timeEnd( 'part1 input' );
 
 function part2( input: string, maxRocks: number ) {
@@ -155,7 +170,6 @@ function part2( input: string, maxRocks: number ) {
 		rockTypes,
 		edgeMask,
 		chasm,
-		renderLines,
 		addRock,
 	} = setup( input );
 
@@ -192,9 +206,8 @@ function part2( input: string, maxRocks: number ) {
 	const detectRocksTo = detectRocksFrom + cycleLength;
 	let rocksInCycle = 0;
 
-	while ( chasm.length < detectRocksTo + cycleLength ) {
+	for ( ; chasm.length < detectRocksTo + cycleLength; rockIndex++ ) {
 		const rockY = addRock();
-		rockIndex++;
 
 		if ( detectRocksFrom <= rockY && rockY < detectRocksTo ) {
 			rocksInCycle++;
@@ -212,8 +225,6 @@ function part2( input: string, maxRocks: number ) {
 		addRock();
 	}
 
-	// renderLines( chasm );
-
 	for ( let y = chasm.length - 1; y > 0; y-- ) {
 		if ( chasm[ y ] !== edgeMask ) return y + virtualLines;
 	}
@@ -228,5 +239,5 @@ console.assert( part2( example, 1_000_000_000_000 ) === 1_514_285_714_288 );
 console.timeEnd( 'part2 example' );
 
 console.time( 'part2 input' );
-console.log( part2( input, 1_000_000_000_000 ) );
+console.log( 'part2 result', part2( input, 1_000_000_000_000 ) );
 console.timeEnd( 'part2 input' );
