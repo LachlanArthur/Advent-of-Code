@@ -45,6 +45,7 @@ declare global {
 		filterExists<T>( this: ( T | undefined | null )[] ): T[];
 		groupBy<T, K extends keyof T>( this: T[], property: K ): Map<T[ K ], T[]>;
 		without<T>( this: T[], value: T ): T[];
+		clone<T>( this: T[] ): T[];
 	}
 
 	interface ArrayConstructor {
@@ -356,6 +357,10 @@ Array.prototype.groupBy = function ( this, property ) {
 
 Array.prototype.without = function <T>( this: T[], value: T ) {
 	return this.filter( x => x !== value );
+}
+
+Array.prototype.clone = function <T>( this: T[] ) {
+	return [ ...this ];
 }
 
 Array.fromLines = function ( lines: string ) {

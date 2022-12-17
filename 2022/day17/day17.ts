@@ -3,7 +3,7 @@ import '../../extensions.ts';
 import example from './example.ts';
 import input from './input.ts';
 
-type Rock2 = number[];
+type Rock = number[];
 type Jet = '<' | '>';
 
 function setup( input: string ) {
@@ -14,7 +14,7 @@ function setup( input: string ) {
 		'>': ( x: number ) => x >> 1,
 	}
 
-	const rockTypes = [
+	const rockTypes: Rock[] = [
 		[
 			0b000111100,
 		],
@@ -38,7 +38,7 @@ function setup( input: string ) {
 			0b000110000,
 			0b000110000,
 		],
-	];
+	].map( rock => rock.reverse() );
 
 	const edgeMask = 0b100000001;
 
@@ -46,25 +46,25 @@ function setup( input: string ) {
 		0b111111111,
 	];
 
-	const nextRock = ( ( nextRockIndex ) => () => [ ...rockTypes[ nextRockIndex++ % rockTypes.length ] ].reverse() )( 0 );
+	const nextRock = ( ( nextRockIndex ) => (): Rock => rockTypes[ nextRockIndex++ % rockTypes.length ].clone() )( 0 );
 
 	const nextJet = ( ( nextJetIndex ) => () => jets[ nextJetIndex++ % jets.length ] )( 0 );
 
-	const shiftRock = ( rock: Rock2, jet: Jet, y: number ) => {
+	const shiftRock = ( rock: Rock, jet: Jet, y: number ) => {
 		const newRock = rock.map( jetShift[ jet ] );
 		if ( !spaceForRock( newRock, y ) ) return rock;
 		return newRock;
 	}
 
-	const spaceForRock = ( rock: Rock2, y: number ) => !rock.some( ( rockLine, index ) => chasm[ y - index ] & rock[ rock.length - 1 - index ] );
+	const spaceForRock = ( rock: Rock, y: number ) => !rock.some( ( rockLine, index ) => chasm[ y - index ] & rock[ rock.length - 1 - index ] );
 
-	const stopRock = ( rock: Rock2, y: number ) => {
+	const stopRock = ( rock: Rock, y: number ) => {
 		for ( let ry = 0; ry < rock.length; ry++ ) {
 			chasm[ y - ry ] |= rock[ rock.length - 1 - ry ];
 		}
 	}
 
-	const extendChasm = ( rock: Rock2 ) => {
+	const extendChasm = ( rock: Rock ) => {
 		const gap = 3;
 
 		// Trim excess space
@@ -86,6 +86,26 @@ function setup( input: string ) {
 		);
 	}
 
+	const addRock = () => {
+		let rock = nextRock();
+		extendChasm( rock );
+
+		let rockY = chasm.length - 1;
+
+		while ( true ) {
+			rock = shiftRock( rock, nextJet(), rockY );
+
+			if ( spaceForRock( rock, rockY - 1 ) ) {
+				rockY--;
+			} else {
+				stopRock( rock, rockY );
+				break;
+			}
+		}
+
+		return rockY;
+	}
+
 	return {
 		jets,
 		jetShift,
@@ -99,6 +119,7 @@ function setup( input: string ) {
 		stopRock,
 		extendChasm,
 		renderLines,
+		addRock,
 	}
 }
 
@@ -106,42 +127,11 @@ function part1( input: string, maxRocks: number ) {
 	const {
 		edgeMask,
 		chasm,
-		nextRock,
-		nextJet,
-		shiftRock,
-		spaceForRock,
-		stopRock,
-		extendChasm,
-		renderLines,
+		addRock,
 	} = setup( input );
 
 	for ( let rockIndex = 0; rockIndex < maxRocks; rockIndex++ ) {
-		let rock = nextRock();
-		extendChasm( rock );
-
-		let rockY = chasm.length - 1;
-
-		// console.log( 'New Rock at', rockY );
-		// renderLines( rock );
-		// renderLines( chasm );
-
-		while ( true ) {
-			rock = shiftRock( rock, nextJet(), rockY );
-			// console.log( 'Rock shifted' );
-			// renderLines( rock );
-
-			if ( spaceForRock( rock, rockY - 1 ) ) {
-				rockY--;
-				// console.log( 'Rock dropped to', rockY );
-			} else {
-				// console.log( 'Rock stopped at', rockY );
-
-				stopRock( rock, rockY );
-
-				break;
-			}
-		}
-
+		addRock();
 	}
 
 	// renderLines( chasm );
@@ -160,13 +150,83 @@ console.log( part1( input, 2022 ) );
 console.timeEnd( 'part1 input' );
 
 function part2( input: string, maxRocks: number ) {
-	
+	const {
+		jets,
+		rockTypes,
+		edgeMask,
+		chasm,
+		renderLines,
+		addRock,
+	} = setup( input );
+
+	const cycleMaximum = jets.length * rockTypes.length;
+	const searchSize = 10; // Somewhat arbitrary
+
+	let rockIndex = 0;
+
+	// Seed the chasm with two cycles
+	for ( ; rockIndex < cycleMaximum * 2; rockIndex++ ) {
+		addRock();
+	}
+
+	// Find the cycle
+	const searchEnd = chasm.length - 1 - cycleMaximum;
+	const searchStart = searchEnd - searchSize;
+	const search = chasm.slice( searchStart, searchEnd );
+	let cycleLength: number | undefined;
+
+	for ( let y = searchStart - searchSize; y > 0; y-- ) {
+		if ( search.every( ( byte, index ) => chasm[ y + index ] === byte ) ) {
+			cycleLength = searchStart - y;
+			break;
+		}
+	}
+
+	if ( !cycleLength ) {
+		throw 'Failed to find a cycle';
+	}
+
+	// Count how many rocks need to fall to advance a cycle
+	// Add three more cycles, count how many rocks landed in cycle #2
+	const detectRocksFrom = chasm.length + cycleLength;
+	const detectRocksTo = detectRocksFrom + cycleLength;
+	let rocksInCycle = 0;
+
+	while ( chasm.length < detectRocksTo + cycleLength ) {
+		const rockY = addRock();
+		rockIndex++;
+
+		if ( detectRocksFrom <= rockY && rockY < detectRocksTo ) {
+			rocksInCycle++;
+		}
+	}
+
+	// Bulk add cycles until we get close to the end
+	const remainingRocks = maxRocks - rockIndex;
+	const remainingCycles = Math.floor( remainingRocks / rocksInCycle );
+	const virtualLines = remainingCycles * cycleLength;
+	rockIndex += remainingCycles * rocksInCycle;
+
+	// Finish off
+	for ( ; rockIndex < maxRocks; rockIndex++ ) {
+		addRock();
+	}
+
+	// renderLines( chasm );
+
+	for ( let y = chasm.length - 1; y > 0; y-- ) {
+		if ( chasm[ y ] !== edgeMask ) return y + virtualLines;
+	}
 }
 
-// console.time( 'part2 example' );
-// console.assert( part2( example, 1_000_000_000_000 ) === 1_514_285_714_288 );
-// console.timeEnd( 'part2 example' );
+console.time( 'part1 example - cycles' );
+console.assert( part2( example, 2022 ) === 3068 );
+console.timeEnd( 'part1 example - cycles' );
 
-// console.time( 'part2 input' );
-// console.log( part2( input, 1_000_000_000_000 ) );
-// console.timeEnd( 'part2 input' );
+console.time( 'part2 example' );
+console.assert( part2( example, 1_000_000_000_000 ) === 1_514_285_714_288 );
+console.timeEnd( 'part2 example' );
+
+console.time( 'part2 input' );
+console.log( part2( input, 1_000_000_000_000 ) );
+console.timeEnd( 'part2 input' );
