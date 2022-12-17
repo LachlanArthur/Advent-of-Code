@@ -1,6 +1,6 @@
-import { renderBrailleGrid } from "./debug";
-import "./extensions";
-import { Cell, Grid } from "./grid";
+import { renderBrailleGrid } from "./debug.ts";
+import "./extensions.ts";
+import { Cell, Grid } from "./grid.ts";
 
 export interface Vertex {
 	edges: Map<this, number>;

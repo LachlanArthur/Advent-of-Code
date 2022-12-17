@@ -44,6 +44,7 @@ declare global {
 		pad<T>( this: T[], length: number, value: T | ( () => T ) ): T[];
 		filterExists<T>( this: ( T | undefined | null )[] ): T[];
 		groupBy<T, K extends keyof T>( this: T[], property: K ): Map<T[ K ], T[]>;
+		without<T>( this: T[], value: T ): T[];
 	}
 
 	interface ArrayConstructor {
@@ -231,9 +232,9 @@ Array.prototype.partitionBy = function <T>( this: T[], sizes: number[], leftover
 	return output;
 }
 
-Array.prototype.transpose = function ( fill?: any ) {
+Array.prototype.transpose = function () {
 	const colCount = this.length;
-	const rowCount = Math.min( ...this.pluck( 'length' ) );
+	const rowCount = Math.min( ...( this as any ).pluck( 'length' ) );
 
 	if ( rowCount === 0 || colCount === 0 ) return [];
 
@@ -351,6 +352,10 @@ Array.prototype.groupBy = function ( this, property ) {
 	}
 
 	return groups;
+}
+
+Array.prototype.without = function <T>( this: T[], value: T ) {
+	return this.filter( x => x !== value );
 }
 
 Array.fromLines = function ( lines: string ) {
