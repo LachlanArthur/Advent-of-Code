@@ -1,7 +1,7 @@
-import '../../extensions';
+import '../../extensions.ts';
 
-import example from './example';
-import input from './input';
+import example from './example.ts';
+import input from './input.ts';
 
 function part1( input: string ) {
 	return input
@@ -9,14 +9,22 @@ function part1( input: string ) {
 		.log()
 }
 
-console.assert( part1( example ) === undefined );
+// console.time( 'part 1 example' );
+// console.assert( part1( example ) === undefined );
+// console.timeEnd( 'part 1 example' );
 
-console.log( part1( input ) );
+// console.time( 'part 1 input' );
+// console.log( 'part 1 output:', part1( input ) );
+// console.timeEnd( 'part 1 input' );
 
 // function part2( input: string ) {
 
 // }
 
+// console.time( 'part 2 example' );
 // console.assert( part2( example ) === undefined );
+// console.timeEnd( 'part 2 example' );
 
-// console.log( part2( input ) );
+// console.time( 'part 2 input' );
+// console.log( 'part 2 output:', part2( input ) );
+// console.timeEnd( 'part 2 input' );
