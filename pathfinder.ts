@@ -125,3 +125,84 @@ export class AStarGrid<T extends any, V extends GridVertex<T>> extends AStar<V> 
 		return new this( vertices );
 	}
 }
+
+export function dijkstra<T extends Vertex>( all: T[], start: T, end: T ): T[] {
+	const dist = new Map<T, number>( all.map( ( v ) => [ v, Infinity ] ) );
+	const prev = new Map<T, T>();
+	const open = new Set<T>( all );
+	const shortestOpen = (): T => dist
+		.entriesArray()
+		.filter( ( [ v ] ) => open.has( v ) )
+		.sortByNumberAsc( '1' )[ 0 ][ 0 ];
+
+	dist.set( start, 0 );
+
+	const reconstruct = () => {
+		let current = end;
+		const path: T[] = [ current ];
+
+		while ( current = prev.get( current )! ) {
+			path.unshift( current );
+		}
+
+		return path;
+	}
+
+	while ( open.size > 0 ) {
+		const next = shortestOpen();
+		open.delete( next );
+
+		if ( next === end ) {
+			return reconstruct();
+		}
+
+		const distU = dist.get( next )!;
+
+		for ( const [ v, value ] of next.edges ) {
+			if ( !open.has( v ) ) continue;
+
+			const alt = distU + value;
+
+			if ( alt < dist.get( v )! ) {
+				dist.set( v, alt );
+				prev.set( v, next );
+			}
+		}
+	}
+
+	return []
+}
+
+export function breadthFirstSearch<T extends Vertex>( start: T, end: T ) {
+	const queue: T[] = [ start ];
+	const seen = new Set<T>( [ start ] );
+	const parents = new Map<T, T>();
+
+	const reconstruct = () => {
+		let current = end;
+		const path: T[] = [ current ];
+
+		while ( current = parents.get( current )! ) {
+			path.unshift( current );
+		}
+
+		return path;
+	}
+
+	while ( queue.length > 0 ) {
+		const valve = queue.pop()!;
+
+		if ( valve === end ) {
+			return reconstruct();
+		}
+
+		for ( const [ edge, value ] of valve.edges ) {
+			if ( seen.has( edge ) ) continue;
+			seen.add( edge );
+			parents.set( edge, valve );
+			queue.unshift( edge );
+		}
+	}
+
+	return []
+}

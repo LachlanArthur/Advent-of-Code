@@ -44,7 +44,7 @@ declare global {
 		pad<T>( this: T[], length: number, value: T | ( () => T ) ): T[];
 		filterExists<T>( this: ( T | undefined | null )[] ): T[];
 		groupBy<T, K extends keyof T>( this: T[], property: K ): Map<T[ K ], T[]>;
-		without<T>( this: T[], value: T ): T[];
+		without<T>( this: T[], ...values: T[] ): T[];
 		clone<T>( this: T[] ): T[];
 	}
 
@@ -287,11 +287,11 @@ Array.prototype.sortByNumberDesc = function ( this: any[], property?: string ) {
 }
 
 Array.prototype.max = function ( this: number[] ) {
-	return Math.max( ...this );
+	return max( this );
 }
 
 Array.prototype.min = function ( this: number[] ) {
-	return Math.min( ...this );
+	return min( this );
 }
 
 Array.prototype.pluck = function ( property: string | number | symbol ) {
@@ -355,8 +355,9 @@ Array.prototype.groupBy = function ( this, property ) {
 	return groups;
 }
 
-Array.prototype.without = function <T>( this: T[], value: T ) {
-	return this.filter( x => x !== value );
+Array.prototype.without = function <T>( this: T[], ...values: T[] ) {
+	const remove = new Set( values );
+	return this.filter( x => !remove.has( x ) );
 }
 
 Array.prototype.clone = function <T>( this: T[] ) {
@@ -476,4 +477,28 @@ export function collect<T>( ...args: any ): Array<T> {
 	} else {
 		return new Array<T>( ...args );
 	}
+}
+
+// Can handle huge arrays
+export function max( values: number[] ) {
+	let length = values.length;
+	let max = -Infinity;
+
+	while ( length-- ) {
+		max = values[ length ] > max ? values[ length ] : max;
+	}
+
+	return max;
+}
+
+// Can handle huge arrays
+export function min( values: number[] ) {
+	let length = values.length;
+	let min = Infinity;
+
+	while ( length-- ) {
+		min = values[ length ] < min ? values[ length ] : min;
+	}
+
+	return min;
 }
