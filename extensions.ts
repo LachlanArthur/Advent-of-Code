@@ -25,8 +25,7 @@ declare global {
 		 * Chunk into specific sizes
 		 */
 		partitionBy( sizes: number[], leftovers?: boolean ): T[][];
-		transpose<T, U>( this: [ T[], U[] ] ): [ T, U ][];
-		transpose<T, U>( this: [ T, U ][] ): [ T[], U[] ] | [];
+		transpose<T>( this: T[][] ): T[][];
 		sum( this: number[] ): number;
 		product( this: number[] ): number;
 		sortByNumberAsc( this: number[] ): T[];
@@ -53,7 +52,7 @@ declare global {
 		fromChars( input: string ): string[];
 		fromRange( start: number, end: number, step?: number ): number[];
 		filled<T>( count: number, filler: T | ( ( value: undefined, index: number, array: undefined[] ) => T ) ): T[];
-		filledFromCoordinates<T>( coords: [ number, number ][], filler: ( coord: [ number, number ] ) => T, blank?: T ): ( T | undefined )[][];
+		filledFromCoordinates<T>( coords: [ number, number ][], filler: ( coord: [ number, number ], index: number ) => T, blank?: T ): ( T | undefined )[][];
 		intersect<T>( ...arrays: T[] ): T;
 		same<T>( a: T[], b: T[] ): boolean;
 		zipEntries<K, V>( keys: K[], values: V[], fill?: V ): [ K, V ][];
@@ -392,11 +391,11 @@ Array.filled = function <T>( count: number, filler: T | ( ( value: undefined, in
 	return output.fill( filler );
 }
 
-Array.filledFromCoordinates = function <T>( coords: [ number, number ][], filler: ( coord: [ number, number ] ) => T, blank?: T ): ( T | undefined )[][] {
+Array.filledFromCoordinates = function <T>( coords: [ number, number ][], filler: ( coord: [ number, number ], index: number ) => T, blank?: T ): ( T | undefined )[][] {
 	const grid: T[][] = [];
 
-	for ( const [ x, y ] of coords ) {
-		( grid[ y ] ??= [] )[ x ] = filler( [ x, y ] );
+	for ( const [ i, [ x, y ] ] of coords.entries() ) {
+		( grid[ y ] ??= [] )[ x ] = filler( [ x, y ], i );
 	}
 
 	const maxWidth = Math.max( ...grid.pluck( 'length' ) );
@@ -426,7 +425,7 @@ Array.zipEntries = function <K, V>( keys: K[], values: V[], fill?: V ): [ K, V ]
 	return ( [
 		keys,
 		values.pad( keys.length, fill ),
-	] as [ K[], V[] ] ).transpose();
+	] as any ).transpose();
 }
 
 Map.prototype.entriesArray = function () {
