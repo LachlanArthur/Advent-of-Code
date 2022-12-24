@@ -75,6 +75,10 @@ declare global {
 		keysArray(): number[];
 		valuesArray(): T[];
 	}
+
+	interface Number {
+		mod( this: number, mod: number ): number;
+	}
 }
 
 Array.prototype.log = function <T>( this: T[], message?: string ) {
@@ -468,6 +472,11 @@ Set.prototype.keysArray = function () {
 Set.prototype.valuesArray = function () {
 	return Array.from( this.values() );
 }
+
+Number.prototype.mod = function ( mod: number ) {
+	"use strict";
+	return ( ( this % mod ) + mod ) % mod;
+};
 
 export function collect<T>( input: Array<T> ): Array<T>;
 export function collect<T>( ...input: Array<T> ): Array<T>;

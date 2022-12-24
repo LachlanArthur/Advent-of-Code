@@ -3,13 +3,19 @@ import "./extensions.ts";
 import { Cell, Grid } from "./grid.ts";
 
 export interface Vertex {
-	edges: Map<this, number>;
+	edges: Map<Vertex, number>;
+
+	is( other: Vertex ): boolean;
 }
 
 export class GridVertex<T> implements Vertex {
-	edges = new Map<this, number>();
+	edges = new Map<GridVertex<T>, number>();
 
 	constructor( public x: number, public y: number, public value: T ) { }
+
+	is( other: GridVertex<T> ) {
+		return this === other;
+	}
 }
 
 export interface Pathfinder<V extends Vertex> {
@@ -45,13 +51,13 @@ export abstract class AStar<V extends Vertex> implements Pathfinder<V> {
 
 			const currentGScore = gScore.get( current )!;
 
-			if ( current === end ) {
+			if ( current.is( end ) ) {
 				return this.reconstructPath( cameFrom, current );
 			}
 
 			openSet.delete( current );
 
-			for ( const [ edgeVertex, edgeWeight ] of current.edges ) {
+			for ( const [ edgeVertex, edgeWeight ] of current.edges as Map<V, number> ) {
 				const surroundGScore = gScore.get( edgeVertex ) ?? Infinity;
 				const tentativeGScore = currentGScore + edgeWeight;
 
@@ -64,7 +70,7 @@ export abstract class AStar<V extends Vertex> implements Pathfinder<V> {
 			}
 		}
 
-		return [];
+		throw new Error( 'Pathfinding failed' );
 	}
 }
 
@@ -95,7 +101,7 @@ export class AStarGrid<T extends any, V extends GridVertex<T>> extends AStar<V> 
 	 * @param getEdgeValue - Get the value of an edge between two vertices. Return null to remove the edge.
 	 */
 	static fromGrid<T, V extends GridVertex<T>>(
-		grid: Grid<T>,
+		grid: Grid<T, Cell<T>>,
 		createVertex?: ( cell: Cell<T> ) => V,
 		getEdgeValue?: ( source: V, destination: V ) => number | null,
 	): AStarGrid<T, V> {
@@ -152,20 +158,20 @@ export function dijkstra<T extends Vertex>( all: T[], start: T, end: T ): T[] {
 		const next = shortestOpen();
 		open.delete( next );
 
-		if ( next === end ) {
+		if ( next.is( end ) ) {
 			return reconstruct();
 		}
 
 		const distU = dist.get( next )!;
 
-		for ( const [ v, value ] of next.edges ) {
-			if ( !open.has( v ) ) continue;
+		for ( const [ edge, value ] of next.edges as Map<T, number> ) {
+			if ( !open.has( edge ) ) continue;
 
 			const alt = distU + value;
 
-			if ( alt < dist.get( v )! ) {
-				dist.set( v, alt );
-				prev.set( v, next );
+			if ( alt < dist.get( edge )! ) {
+				dist.set( edge, alt );
+				prev.set( edge, next );
 			}
 		}
 	}
@@ -190,16 +196,16 @@ export function breadthFirstSearch<T extends Vertex>( start: T, end: T ) {
 	}
 
 	while ( queue.length > 0 ) {
-		const valve = queue.pop()!;
+		const next = queue.pop()!;
 
-		if ( valve === end ) {
+		if ( next.is( end ) ) {
 			return reconstruct();
 		}
 
-		for ( const [ edge, value ] of valve.edges ) {
+		for ( const [ edge, value ] of next.edges as Map<T, number> ) {
 			if ( seen.has( edge ) ) continue;
 			seen.add( edge );
-			parents.set( edge, valve );
+			parents.set( edge, next );
 			queue.unshift( edge );
 		}
 	}
