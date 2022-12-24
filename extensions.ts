@@ -398,9 +398,10 @@ Array.filledFromCoordinates = function <T>( coords: [ number, number ][], filler
 		( grid[ y ] ??= [] )[ x ] = filler( [ x, y ], i );
 	}
 
-	const maxWidth = Math.max( ...grid.pluck( 'length' ) );
+	const maxWidth = Math.max( ...grid.pluck( 'length' ).filter( Number ) )
 
-	return grid.map( row => Array.filled( maxWidth, ( _, i ) => row[ i ] ?? blank ) )
+	return new Array( grid.length ).fill( undefined )
+		.map( ( _, rowIndex ) => Array.filled( maxWidth, ( _, i ) => grid[ rowIndex ]?.[ i ] ?? blank ) )
 }
 
 Array.intersect = function <T>( ...arrays: T[] ) {
