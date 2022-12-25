@@ -64,6 +64,7 @@ declare global {
 		valuesArray(): V[];
 		increment<K>( this: Map<K, number>, key: K, amount?: number ): Map<K, number>;
 		decrement<K>( this: Map<K, number>, key: K, amount?: number ): Map<K, number>;
+		flip<K, V>( this: Map<K, V> ): Map<V, K>;
 	}
 
 	interface MapConstructor {
@@ -455,6 +456,16 @@ Map.prototype.decrement = function <K>( this: Map<K, number>, key: K, amount = 1
 	this.set( key, ( this.get( key ) ?? 0 ) - amount );
 
 	return this;
+}
+
+Map.prototype.flip = function <K, V>( this: Map<K, V> ): Map<V, K> {
+	const output = new Map<V, K>();
+
+	for ( const [ k, v ] of this ) {
+		output.set( v, k );
+	}
+
+	return output;
 }
 
 Map.zip = function <K, V>( keys: K[], values: V[], fill?: V ): Map<K, V> {

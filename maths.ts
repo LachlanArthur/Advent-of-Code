@@ -39,3 +39,13 @@ export function combinations<T>( values: T[], size: number ): T[][] {
 
 	return output;
 }
+
+export function triangleNumber( n: number ): number {
+	let output = 0;
+
+	for ( let i = 0; i < n; i++ ) {
+		output += i;
+	}
+
+	return output;
+}
