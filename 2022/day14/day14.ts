@@ -13,7 +13,7 @@ function parse( input: string ) {
 		.flatMap( line => line
 			.split( ' -> ' )
 			.map( coord => coord.split( ',' ).map( Number ) as Point )
-			.chunks( 2, -1, false )
+			.sliding( 2 )
 		) as Line[]
 
 	const maxY = lines

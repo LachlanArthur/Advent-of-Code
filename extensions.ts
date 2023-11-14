@@ -3,7 +3,8 @@ type KeysWithValsOfType<T, V> = keyof { [ P in keyof T as T[ P ] extends V ? P :
 declare global {
 	interface Array<T> {
 		log( message?: string ): this;
-		chunks( size: number, offset?: number, leftovers?: boolean ): T[][];
+		chunks( size: number, leftovers?: boolean ): T[][];
+		sliding( size: number, skip?: number, leftovers?: boolean ): T[][];
 		unique(): T[];
 		duplicates(): T[];
 		hasDuplicates(): boolean;
@@ -80,6 +81,10 @@ declare global {
 	interface Number {
 		mod( this: number, mod: number ): number;
 	}
+
+	interface String {
+		linesToNumbers(): number[];
+	}
 }
 
 Array.prototype.log = function <T>( this: T[], message?: string ) {
@@ -96,30 +101,34 @@ Array.prototype.log = function <T>( this: T[], message?: string ) {
 	return this;
 }
 
-Array.prototype.chunks = function <T>( this: T[], size: number, offset = 0, leftovers = true ) {
-	const iterator = this[ Symbol.iterator ]();
-	const output: T[][] = [];
-	let lastN: T[] = [];
+Array.prototype.chunks = function <T>( this: T[], size: number, leftovers = true ) {
+	return this.sliding( size, size, leftovers );
+}
 
-	while ( true ) {
-		const { done, value } = iterator.next();
-		if ( done ) break;
+Array.prototype.sliding = function <T>( this: T[], size: number, slide = 1, leftovers = false ) {
+	if ( slide < 1 ) {
+		throw new RangeError( 'Slide value must be greater than zero' );
+	}
 
-		lastN.push( value );
+	const windowCount = Math.max( 0, Math.floor( ( this.length - size ) / slide ) ) + 1;
 
-		if ( lastN.length === size ) {
-			output.push( lastN.slice( 0, size ) );
+	const output: T[][] = Array.from( { length: windowCount } );
 
-			lastN.splice( 0, size + offset );
+	for ( let windowIndex = 0; windowIndex < windowCount; windowIndex++ ) {
+		output[ windowIndex ] = Array.from( { length: size } );
 
-			for ( let skip = 0; skip < Math.max( 0, offset ); skip++ ) {
-				iterator.next();
-			}
+		for ( let itemIndex = 0; itemIndex < size; itemIndex++ ) {
+			const index = windowIndex * slide + itemIndex;
+			if ( index >= this.length ) break;
+			output[ windowIndex ][ itemIndex ] = this[ index ];
 		}
 	}
 
-	if ( leftovers && lastN.length ) {
-		output.push( lastN );
+	if ( leftovers ) {
+		const leftoverIndex = windowCount * slide;
+		if ( leftoverIndex < this.length ) {
+			output.push( this.slice( leftoverIndex ) );
+		}
 	}
 
 	return output;
@@ -212,7 +221,7 @@ Array.prototype.skipNth = function <T>( this: T[], n: number, offset = 0 ) {
 Array.prototype.deal = function <T>( this: T[], intoHands: number, leftovers = true ) {
 	const output: T[][] = Array.filled( intoHands, () => [] );
 
-	for ( const chunk of this.chunks( intoHands, 0, leftovers ) ) {
+	for ( const chunk of this.sliding( intoHands, 0, leftovers ) ) {
 		for ( const [ index, item ] of chunk.entries() ) {
 			output[ index ].push( item );
 		}
@@ -488,6 +497,10 @@ Number.prototype.mod = function ( mod: number ) {
 	"use strict";
 	return ( ( this % mod ) + mod ) % mod;
 };
+
+String.prototype.linesToNumbers = function () {
+	return this.split( '\n' ).map( Number );
+}
 
 export function collect<T>( input: Array<T> ): Array<T>;
 export function collect<T>( ...input: Array<T> ): Array<T>;

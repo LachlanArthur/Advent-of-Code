@@ -145,7 +145,7 @@ function countPairs( input: string ): Map<string, number> {
 
 function makePairs( input: string ) {
 	return input.split( '' )
-		.chunks( 2, -1, false )
+		.sliding( 2 )
 		.map( pair => pair.join( '' ) )
 }
 
