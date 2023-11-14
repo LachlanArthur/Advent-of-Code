@@ -1,3 +1,4 @@
+import { bench } from '../../bench.ts';
 import '../../extensions.ts';
 
 import example from './example.ts';
@@ -69,10 +70,6 @@ function part1( input: string ) {
 	return snafu.fromDecimal( decimals.sum() );
 }
 
-console.time( 'part 1 example' );
-console.assert( part1( example ) === '2=-1=0' );
-console.timeEnd( 'part 1 example' );
+bench( 'part 1 example', () => part1( example ), '2=-1=0' );
 
-console.time( 'part 1 input' );
-console.log( 'part 1 output:', part1( input ) );
-console.timeEnd( 'part 1 input' );
+bench( 'part 1 input', () => part1( input ) );

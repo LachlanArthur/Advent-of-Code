@@ -1,4 +1,5 @@
 import '../../extensions.ts';
+import { bench } from '../../bench.ts';
 
 import example from './example.ts';
 import input from './input.ts';
@@ -24,10 +25,10 @@ function part2( input: string ): number {
 		.sum();
 }
 
-console.assert( part1( example ) === 24000 )
+bench( 'part 1 example', () => part1( example ), 24000 );
 
-console.log( part1( input ) )
+bench( 'part 1 input', () => part1( input ) );
 
-console.assert( part2( example ) === 45000 )
+bench( 'part 2 example', () => part2( example ), 45000 );
 
-console.log( part2( input ) )
+bench( 'part 2 input', () => part2( input ) );

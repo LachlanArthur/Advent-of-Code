@@ -1,3 +1,4 @@
+import { bench } from '../../bench.ts';
 import '../../extensions.ts';
 
 import example from './example.ts';
@@ -31,9 +32,9 @@ function part1( input: string ): number {
 		.sum()
 }
 
-console.assert( part1( example ) === 157 );
+bench( 'part 1 example', () => part1( example ), 157 );
 
-console.log( part1( input ) );
+bench( 'part 1 input', () => part1( input ) );
 
 function part2( input: string ): number {
 	return input.split( '\n' )
@@ -43,6 +44,6 @@ function part2( input: string ): number {
 		.sum()
 }
 
-console.assert( part2( example ) === 70 );
+bench( 'part 2 example', () => part2( example ), 70 );
 
-console.log( part2( input ) );
+bench( 'part 2 input', () => part2( input ) );

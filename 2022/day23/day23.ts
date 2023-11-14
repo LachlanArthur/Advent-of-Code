@@ -4,6 +4,7 @@ import { Cell, Grid } from "../../grid.ts";
 
 import example, { simpleExample } from './example.ts';
 import input from './input.ts';
+import { bench } from '../../bench.ts';
 
 type Point = [ number, number ];
 type PointKey = string;
@@ -150,22 +151,10 @@ function part1( input: string, maxRounds: number ) {
 	// console.log( elfPositions );
 }
 
-// console.time( 'part 1 example' );
-// console.assert( part1( example, 10 ) === 110 );
-// console.timeEnd( 'part 1 example' );
+bench( 'part 1 example', () => part1( example, 10 ), 110 );
 
-// console.time( 'part 1 input' );
-// console.log( 'part 1 output:', part1( input, 10 ) );
-// console.timeEnd( 'part 1 input' );
+bench( 'part 1 input', () => part1( input, 10 ) );
 
-// function part2( input: string ) {
+bench( 'part 2 example', () => part1( example, Infinity ), 20 );
 
-// }
-
-// console.time( 'part 2 example' );
-// console.assert( part1( example, Infinity ) === 20 );
-// console.timeEnd( 'part 2 example' );
-
-console.time( 'part 2 input' );
-console.log( 'part 2 output:', part1( input, Infinity ) );
-console.timeEnd( 'part 2 input' );
+bench( 'part 2 input', () => part1( input, Infinity ) );

@@ -1,3 +1,4 @@
+import { bench } from '../../bench.ts';
 import '../../extensions.ts';
 
 import example from './example.ts';
@@ -79,9 +80,9 @@ function part1( input: string ) {
 
 }
 
-console.assert( part1( example ) === 13 );
+bench( 'part 1 example', () => part1( example ), 13 );
 
-console.log( part1( input ) );
+bench( 'part 1 input', () => part1( input ) );
 
 function followTheLeader( [ leaderX, leaderY ]: Pair, [ followX, followY ]: Pair ): Pair {
 	const offsetX = leaderX - followX;
@@ -181,6 +182,6 @@ function part2( input: string ) {
 
 }
 
-console.assert( part2( example2 ) === 36 );
+bench( 'part 2 example', () => part2( example2 ), 36 );
 
-console.log( part2( input ) );
+bench( 'part 2 input', () => part2( input ) );

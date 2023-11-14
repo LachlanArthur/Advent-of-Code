@@ -1,3 +1,4 @@
+import { bench } from '../../bench.ts';
 import '../../extensions.ts';
 
 import example from './example.ts';
@@ -35,9 +36,9 @@ function part1( input: string ) {
 	return strengths.sum();
 }
 
-console.assert( part1( example ) === 13140 );
+bench( 'part 1 example', () => part1( example ), 13140 );
 
-console.log( part1( input ) );
+bench( 'part 1 input', () => part1( input ) );
 
 function part2( input: string ) {
 	const cycles = runCycles( input );
@@ -59,6 +60,6 @@ function part2( input: string ) {
 		.join( '\n' );
 }
 
-console.log( part2( example ) );
+bench( 'part 2 example', () => part2( example ) );
 
-console.log( part2( input ) );
+bench( 'part 2 input', () => part2( input ) );

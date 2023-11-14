@@ -4,6 +4,7 @@ import { manhattan } from '../../grid.ts';
 
 import example from './example.ts';
 import input from './input.ts';
+import { bench } from '../../bench.ts';
 
 class Sensor {
 	public minRange: number;
@@ -74,9 +75,9 @@ function part1( input: string, searchRow: number ) {
 	return inside;
 }
 
-console.assert( part1( example, 10 ) === 26 );
+bench( 'part 1 example', () => part1( example, 10 ), 26 );
 
-console.log( part1( input, 2000000 ) );
+bench( 'part 1 input', () => part1( input, 2000000 ) );
 
 function part2( input: string, searchRange: number ) {
 	const sensors = parse( input );
@@ -102,7 +103,7 @@ function part2( input: string, searchRange: number ) {
 
 		if ( ranges.length === 2 ) {
 			const x = ranges[ 0 ][ 1 ] + 1;
-			console.log( 'Found hole at', { x, y } );
+			// console.log( 'Found hole at', { x, y } );
 			return x * 4000000 + y;
 		}
 
@@ -112,6 +113,6 @@ function part2( input: string, searchRange: number ) {
 	throw new Error( 'Not found' );
 }
 
-console.assert( part2( example, 20 ) === 56000011 );
+bench( 'part 2 example', () => part2( example, 20 ), 56000011 );
 
-console.log( part2( input, 4000000 ) );
+bench( 'part 2 input', () => part2( input, 4000000 ) );

@@ -1,3 +1,4 @@
+import { bench } from '../../bench.ts';
 import '../../extensions.ts';
 
 import example from './example.ts';
@@ -58,9 +59,9 @@ function part1( input: string ) {
 	return stacks.map( stack => stack.pop() ).join('');
 }
 
-console.assert( part1( example ) === 'CMZ' );
+bench( 'part 1 example', () => part1( example ), 'CMZ' );
 
-console.log( part1( input ) );
+bench( 'part 1 input', () => part1( input ) );
 
 function part2( input: string ) {
 	const { stacks, moves } = parseInput( input );
@@ -73,6 +74,6 @@ function part2( input: string ) {
 	return stacks.map( stack => stack.pop() ).join('');
 }
 
-console.assert( part2( example ) === 'MCD' );
+bench( 'part 2 example', () => part2( example ), 'MCD' );
 
-console.log( part2( input ) );
+bench( 'part 2 input', () => part2( input ) );

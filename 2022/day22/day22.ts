@@ -1,3 +1,4 @@
+import { bench } from '../../bench.ts';
 import '../../extensions.ts';
 
 import * as example from './example.ts';
@@ -97,13 +98,9 @@ function part1( { input }: Input ) {
 	return 1000 * ( y + 1 ) + 4 * ( x + 1 ) + facing;
 }
 
-console.time( 'part 1 example' );
-console.assert( part1( example ) === 6032 );
-console.timeEnd( 'part 1 example' );
+bench( 'part 1 example', () => part1( example ), 6032 );
 
-console.time( 'part 1 input' );
-console.log( 'part 1 output:', part1( input ) );
-console.timeEnd( 'part 1 input' );
+bench( 'part 1 input', () => part1( input ) );
 
 function part2( { input, netSize, faceCoords, faceConnections }: Input ) {
 	const [ board, directions ] = input.split( '\n\n' );
@@ -313,10 +310,6 @@ function part2( { input, netSize, faceCoords, faceConnections }: Input ) {
 	return 1000 * ( y + 1 ) + 4 * ( x + 1 ) + facing;
 }
 
-console.time( 'part 2 example' );
-console.assert( part2( example ) === 5031 );
-console.timeEnd( 'part 2 example' );
+bench( 'part 2 example', () => part2( example ), 5031 );
 
-console.time( 'part 2 input' );
-console.log( 'part 2 output:', part2( input ) );
-console.timeEnd( 'part 2 input' );
+bench( 'part 2 input', () => part2( input ) );

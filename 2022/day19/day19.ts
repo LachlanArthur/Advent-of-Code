@@ -1,3 +1,4 @@
+import { bench } from '../../bench.ts';
 import '../../extensions.ts';
 
 import example from './example.ts';
@@ -184,13 +185,9 @@ function part1( input: string, maxTime: number ) {
 		.sum()
 }
 
-console.time( 'part 1 example' );
-console.assert( part1( example, 24 ) === 33 );
-console.timeEnd( 'part 1 example' );
+bench( 'part 1 example', () => part1( example, 24 ), 33 );
 
-console.time( 'part 1 input' );
-console.log( 'part 1 output:', part1( input, 24 ) );
-console.timeEnd( 'part 1 input' );
+bench( 'part 1 input', () => part1( input, 24 ) );
 
 function part2( input: string, maxTime: number, maxBlueprints: number ) {
 	const blueprints = parse( input )
@@ -201,10 +198,6 @@ function part2( input: string, maxTime: number, maxBlueprints: number ) {
 	return blueprintGeodes.valuesArray().product();
 }
 
-console.time( 'part 2 example' );
-console.assert( part2( example, 32, 2 ) === 3472 );
-console.timeEnd( 'part 2 example' );
+bench( 'part 2 example', () => part2( example, 32, 2 ), 3472 );
 
-console.time( 'part 2 input' );
-console.log( 'part 2 output:', part2( input, 32, 3 ) );
-console.timeEnd( 'part 2 input' );
+bench( 'part 2 input', () => part2( input, 32, 3 ) );

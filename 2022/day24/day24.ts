@@ -1,3 +1,4 @@
+import { bench } from '../../bench.ts';
 import '../../extensions.ts';
 import { manhattan } from "../../grid.ts";
 import { AStar, Vertex } from "../../pathfinder.ts";
@@ -131,13 +132,9 @@ function part1( input: string ): number {
 	return path.pop()!.minute;
 }
 
-console.time( 'part 1 example' );
-console.assert( part1( example ) === 18 );
-console.timeEnd( 'part 1 example' );
+bench( 'part 1 example', () => part1( example ), 18 );
 
-console.time( 'part 1 input' );
-console.log( 'part 1 output:', part1( input ) );
-console.timeEnd( 'part 1 input' );
+bench( 'part 1 input', () => part1( input ) );
 
 function part2( input: string ): number {
 	const { start, end } = parse( input );
@@ -156,10 +153,6 @@ function part2( input: string ): number {
 	return path3.pop()!.minute;
 }
 
-console.time( 'part 2 example' );
-console.assert( part2( example ) === 54 );
-console.timeEnd( 'part 2 example' );
+bench( 'part 2 example', () => part2( example ), 54 );
 
-console.time( 'part 2 input' );
-console.log( 'part 2 output:', part2( input ) );
-console.timeEnd( 'part 2 input' );
+bench( 'part 2 input', () => part2( input ) );

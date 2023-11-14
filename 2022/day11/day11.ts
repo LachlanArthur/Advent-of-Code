@@ -1,3 +1,4 @@
+import { bench } from '../../bench.ts';
 import '../../extensions.ts';
 
 // import example from './example.ts';
@@ -154,15 +155,15 @@ function part1( monkeys: Monkey[], rounds: number, worryDecreaser: ( worry: numb
 
 const part1WorryDecreaser = ( x: number ) => Math.floor( x / 3 );
 
-console.assert( part1( exampleMonkeys(), 20, part1WorryDecreaser ) === 10605 );
+bench( 'part 1 example', () => part1( exampleMonkeys(), 20, part1WorryDecreaser ), 10605 );
 
-console.log( part1( inputMonkeys(), 20, part1WorryDecreaser ) );
+bench( 'part 1 input', () => part1( inputMonkeys(), 20, part1WorryDecreaser ) );
 
 const part2WorryDecreaser = ( monkeys: Monkey[] ) => {
 	const modulus = monkeys.pluck( 'modulus' ).product();
 	return ( x: number ) => x %= modulus;
 }
 
-console.assert( part1( exampleMonkeys(), 10000, part2WorryDecreaser( exampleMonkeys() ) ) === 2713310158 );
+bench( 'part 2 example', () => part1( exampleMonkeys(), 10000, part2WorryDecreaser( exampleMonkeys() ) ), 2713310158 );
 
-console.log( part1( inputMonkeys(), 10000, part2WorryDecreaser( inputMonkeys() ) ) );
+bench( 'part 2 input', () => part1( inputMonkeys(), 10000, part2WorryDecreaser( inputMonkeys() ) ) );

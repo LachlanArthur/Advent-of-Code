@@ -4,6 +4,7 @@ import { combinations } from '../../maths.ts';
 
 import example from './example.ts';
 import input from './input.ts';
+import { bench } from '../../bench.ts';
 
 export class Valve implements Vertex {
 	edges = new Map<this, number>();
@@ -158,13 +159,9 @@ function part1( input: string, startName: string, endAt: number ) {
 	return rankValves( startName, closedValves.valuesArray() )[ 0 ].total;
 }
 
-console.time( 'part 1 example' );
-console.assert( part1( example, 'AA', 30 ) === 1651 );
-console.timeEnd( 'part 1 example' );
+bench( 'part 1 example', () => part1( example, 'AA', 30 ), 1651 );
 
-console.time( 'part 1 input' );
-console.log( 'part 1 output:', part1( input, 'AA', 30 ) );
-console.timeEnd( 'part 1 input' );
+bench( 'part 1 input', () => part1( input, 'AA', 30 ) );
 
 function part2( input: string, startName: string, endAt: number ) {
 	const {
@@ -233,10 +230,6 @@ function part2( input: string, startName: string, endAt: number ) {
 		.max()
 }
 
-console.time( 'part 2 example' );
-console.assert( part2( example, 'AA', 26 ) === 1707 );
-console.timeEnd( 'part 2 example' );
+bench( 'part 2 example', () => part2( example, 'AA', 26 ), 1707 );
 
-console.time( 'part 2 input' );
-console.log( 'part 2 output:', part2( input, 'AA', 26 ) );
-console.timeEnd( 'part 2 input' );
+bench( 'part 2 input', () => part2( input, 'AA', 26 ) );

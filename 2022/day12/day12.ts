@@ -1,3 +1,4 @@
+import { bench } from '../../bench.ts';
 import '../../extensions.ts';
 import { Grid } from '../../grid.ts';
 import { AStarGrid } from '../../pathfinder.ts';
@@ -51,9 +52,9 @@ function part1( input: string ) {
 	return path.length - 1;
 }
 
-console.assert( part1( example ) === 31 );
+bench( 'part 1 example', () => part1( example ), 31 );
 
-console.log( part1( input ) );
+bench( 'part 1 input', () => part1( input ) );
 
 function part2( input: string ) {
 	const { pathfinder, end } = parse( input );
@@ -71,6 +72,6 @@ function part2( input: string ) {
 	return shortest.length - 1;
 }
 
-console.assert( part2( example ) === 29 );
+bench( 'part 2 example', () => part2( example ), 29 );
 
-console.log( part2( input ) );
+bench( 'part 2 input', () => part2( input ) );
