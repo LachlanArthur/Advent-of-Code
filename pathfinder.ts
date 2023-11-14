@@ -70,7 +70,7 @@ export abstract class AStar<V extends Vertex> implements Pathfinder<V> {
 			}
 		}
 
-		throw new Error( 'Pathfinding failed' );
+		return [];
 	}
 }
 
