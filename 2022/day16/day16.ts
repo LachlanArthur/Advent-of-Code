@@ -7,12 +7,16 @@ import input from './input.ts';
 import { bench } from '../../bench.ts';
 
 export class Valve implements Vertex {
-	edges = new Map<this, number>();
+	edges = new Map<Valve, number>();
 
 	constructor( public name: string, public rate: number ) { }
 
 	total( openedAt: number, endAt: number ) {
 		return Math.max( 0, this.rate * ( endAt - openedAt ) );
+	}
+
+	is( other: Valve ): boolean {
+		return this.name === other.name && this.rate === other.rate;
 	}
 }
 

@@ -36,7 +36,7 @@ export class Grid<T, C extends Cell<T>> {
 	}
 
 	static fromString<T, C extends Cell<T>>( input: string, transform: ( char: string, x: number, y: number ) => T ) {
-		return new this(
+		return new this<T, C>(
 			input.split( '\n' )
 				.map( ( line, y ) =>
 					line.split( '' )

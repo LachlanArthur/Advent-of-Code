@@ -20,7 +20,7 @@ export class Monkey {
 	}
 
 	turn( worryDecreaser: ( worry: number ) => number ): Record<string, number[]> {
-		const throws = {};
+		const throws: Record<number, number[]> = {};
 
 		for ( const item of this.items ) {
 			this.inspectCount++;
