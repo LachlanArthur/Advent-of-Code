@@ -1,7 +1,7 @@
-import '../../extensions';
+import '../../extensions.ts';
 
-import example from './example';
-import input from './input';
+import example from './example.ts';
+import input from './input.ts';
 
 function rangesFullyOverlap( a: [ number, number ], b: [ number, number ] ) {
 	return ( a[ 0 ] >= b[ 0 ] && a[ 1 ] <= b[ 1 ] )

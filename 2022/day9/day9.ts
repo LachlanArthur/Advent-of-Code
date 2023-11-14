@@ -1,8 +1,8 @@
-import '../../extensions';
+import '../../extensions.ts';
 
-import example from './example';
-import example2 from './example2';
-import input from './input';
+import example from './example.ts';
+import example2 from './example2.ts';
+import input from './input.ts';
 
 type Direction = 'U' | 'D' | 'R' | 'L';
 

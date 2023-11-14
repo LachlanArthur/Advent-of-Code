@@ -1,9 +1,9 @@
-import '../../extensions';
-import { Interval, combineIntervals } from '../../interval';
-import { manhattan } from '../../grid'
+import '../../extensions.ts';
+import { Interval, combineIntervals } from '../../interval.ts';
+import { manhattan } from '../../grid.ts';
 
-import example from './example';
-import input from './input';
+import example from './example.ts';
+import input from './input.ts';
 
 class Sensor {
 	public minRange: number;

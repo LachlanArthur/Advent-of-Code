@@ -1,9 +1,9 @@
-import '../../extensions';
-import { Grid } from '../../grid';
-import { AStarGrid } from '../../pathfinder';
+import '../../extensions.ts';
+import { Grid } from '../../grid.ts';
+import { AStarGrid } from '../../pathfinder.ts';
 
-import example from './example';
-import input from './input';
+import example from './example.ts';
+import input from './input.ts';
 
 function parse( input: string ) {
 	let startPos: [ number, number ] | undefined;

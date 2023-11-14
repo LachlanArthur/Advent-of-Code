@@ -1,7 +1,7 @@
-import '../../extensions';
+import '../../extensions.ts';
 
-import example from './example';
-import input from './input';
+import example from './example.ts';
+import input from './input.ts';
 
 function parse( input: string ) {
 	const fileSizes = new Map<string, number>();

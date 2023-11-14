@@ -1,4 +1,4 @@
-import './extensions';
+import './extensions.ts';
 
 export type Interval = [ number, number ];
 

@@ -1,7 +1,7 @@
-import '../../extensions';
+import '../../extensions.ts';
 
-// import example from './example';
-// import input from './input';
+// import example from './example.ts';
+// import input from './input.ts';
 
 export class Monkey {
 	public inspectCount = 0;
