@@ -6,7 +6,7 @@ import input from './input.ts';
 
 function part1( input: string ) {
 	return input
-		.split( '\n' )
+		.lines()
 		.log()
 }
 
