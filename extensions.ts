@@ -47,6 +47,7 @@ declare global {
 		without<T>( this: T[], ...values: T[] ): T[];
 		clone<T>( this: T[] ): T[];
 		looping<T>( this: T[] ): Generator<T, never, undefined>;
+		combinations<T>( this: T[], size: number, unique?: boolean ): T[][];
 	}
 
 	interface ArrayConstructor {
@@ -387,6 +388,29 @@ Array.prototype.looping = function* <T>( this: T[] ) {
 	while ( true ) {
 		yield* this;
 	}
+}
+
+Array.prototype.combinations = function <T>( this: T[], size: number, unique = true ): T[][] {
+	if ( this.length === 0 ) return [ [] ];
+
+	const items = unique ? this.unique() : this;
+	if ( items.length === 1 ) return [ items ];
+
+	if ( size === 1 ) return items.map( item => [ item ] );
+
+	const output: T[][] = [];
+
+	for ( const [ index, item ] of items.entries() ) {
+		const rest = items.slice( index + 1 );
+		if ( rest.length === 0 ) continue;
+		const combinations = rest.combinations( size - 1, false );
+
+		for ( const combination of combinations ) {
+			output.push( [ item, ...combination ] );
+		}
+	}
+
+	return output;
 }
 
 Array.fromLines = function ( lines: string ) {
