@@ -48,6 +48,10 @@ declare global {
 		clone<T>( this: T[] ): T[];
 		looping<T>( this: T[] ): Generator<T, never, undefined>;
 		combinations<T>( this: T[], size: number, unique?: boolean ): T[][];
+		countUnique<T>( this: T[] ): Map<T, number>;
+		countUnique<T, K extends keyof T>( this: T[], property: K ): Map<K, number>;
+		first<T>( this: T[] ): T | undefined;
+		last<T>( this: T[] ): T | undefined;
 	}
 
 	interface ArrayConstructor {
@@ -62,6 +66,7 @@ declare global {
 	}
 
 	interface Map<K, V> {
+		log( message?: string ): this;
 		entriesArray(): [ K, V ][];
 		keysArray(): K[];
 		valuesArray(): V[];
@@ -85,6 +90,8 @@ declare global {
 	}
 
 	interface String {
+		lines(): string[];
+		chars(): string[];
 		linesToNumbers(): number[];
 	}
 
@@ -413,8 +420,36 @@ Array.prototype.combinations = function <T>( this: T[], size: number, unique = t
 	return output;
 }
 
+Array.prototype.countUnique = function <T, K extends keyof T>( this: T[], property?: K ) {
+	if ( property ) {
+		const counts = new Map<T[ K ], number>();
+
+		for ( const item of this ) {
+			counts.increment( item[ property ] );
+		}
+
+		return counts;
+	}
+
+	const counts = new Map<T, number>();
+
+	for ( const item of this ) {
+		counts.increment( item );
+	}
+
+	return counts;
+}
+
+Array.prototype.first = function <T>( this: T[] ): T | undefined {
+	return this.at( 0 );
+}
+
+Array.prototype.last = function <T>( this: T[] ): T | undefined {
+	return this.at( -1 );
+}
+
 Array.fromLines = function ( lines: string ) {
-	return collect( lines.split( '\n' ) );
+	return lines.lines();
 }
 
 Array.fromChars = function ( input: string ) {
@@ -479,6 +514,20 @@ Array.zipEntries = function <K, V>( keys: K[], values: V[], fill?: V ): [ K, V ]
 	] as any ).transpose();
 }
 
+Map.prototype.log = function <K, V>( this: Map<K, V>, message?: string ) {
+	if ( message ) {
+		console.group( message );
+	}
+
+	console.log( this );
+
+	if ( message ) {
+		console.groupEnd();
+	}
+
+	return this;
+}
+
 Map.prototype.entriesArray = function () {
 	return Array.from( this.entries() );
 }
@@ -534,8 +583,16 @@ Number.prototype.mod = function ( mod: number ) {
 	return ( ( this % mod ) + mod ) % mod;
 };
 
+String.prototype.lines = function ( this: string ) {
+	return this.split( '\n' );
+}
+
+String.prototype.chars = function ( this: string ) {
+	return this.split( '' );
+}
+
 String.prototype.linesToNumbers = function () {
-	return this.split( '\n' ).map( Number );
+	return this.lines().map( Number );
 }
 
 const IteratorPrototype = Object.getPrototypeOf( Object.getPrototypeOf( [][ Symbol.iterator ]() ) );
