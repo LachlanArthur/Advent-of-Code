@@ -46,6 +46,7 @@ declare global {
 		groupBy<T, K extends keyof T>( this: T[], property: K ): Map<T[ K ], T[]>;
 		without<T>( this: T[], ...values: T[] ): T[];
 		clone<T>( this: T[] ): T[];
+		looping<T>( this: T[] ): Generator<T, never, undefined>;
 	}
 
 	interface ArrayConstructor {
@@ -84,6 +85,11 @@ declare global {
 
 	interface String {
 		linesToNumbers(): number[];
+	}
+
+	interface Iterator<T> {
+		runningTotal( this: IterableIterator<number> ): IterableIterator<number>;
+		firstRepeated( this: IterableIterator<T> ): T | null;
 	}
 }
 
@@ -377,6 +383,12 @@ Array.prototype.clone = function <T>( this: T[] ) {
 	return [ ...this ];
 }
 
+Array.prototype.looping = function* <T>( this: T[] ) {
+	while ( true ) {
+		yield* this;
+	}
+}
+
 Array.fromLines = function ( lines: string ) {
 	return collect( lines.split( '\n' ) );
 }
@@ -500,6 +512,31 @@ Number.prototype.mod = function ( mod: number ) {
 
 String.prototype.linesToNumbers = function () {
 	return this.split( '\n' ).map( Number );
+}
+
+const IteratorPrototype = Object.getPrototypeOf( Object.getPrototypeOf( [][ Symbol.iterator ]() ) );
+
+IteratorPrototype.runningTotal = function* ( this: IterableIterator<number> ) {
+	let total = 0;
+
+	for ( const item of this ) {
+		total += item;
+		yield total;
+	}
+}
+
+IteratorPrototype.firstRepeated = function <T>( this: IterableIterator<T> ) {
+	const seen = new Set<T>();
+
+	for ( const item of this ) {
+		if ( seen.has( item ) ) {
+			return item;
+		}
+
+		seen.add( item );
+	}
+
+	return null;
 }
 
 export function collect<T>( input: Array<T> ): Array<T>;
