@@ -92,6 +92,7 @@ declare global {
 	interface String {
 		lines(): string[];
 		chars(): string[];
+		charCodes(): number[];
 		linesToNumbers(): number[];
 	}
 
@@ -589,6 +590,10 @@ String.prototype.lines = function ( this: string ) {
 
 String.prototype.chars = function ( this: string ) {
 	return this.split( '' );
+}
+
+String.prototype.charCodes = function ( this: string ) {
+	return Array.from( new TextEncoder().encode( this ) );
 }
 
 String.prototype.linesToNumbers = function () {
