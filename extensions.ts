@@ -82,6 +82,8 @@ declare global {
 		flip<K, V>( this: Map<K, V> ): Map<V, K>;
 		push<K, V>( this: Map<K, V[]>, key: K, value: V ): Map<K, V[]>;
 		pop<K, V>( this: Map<K, V[]>, key: K ): V | undefined;
+		unshift<K, V>( this: Map<K, V[]>, key: K, value: V ): Map<K, V[]>;
+		shift<K, V>( this: Map<K, V[]>, key: K ): V | undefined;
 		sortBy<K, V>( this: Map<K, V>, callback: ( ( item: V, key: K, index: number ) => number ) ): Map<K, V>;
 		sortByKeyAsc<V>( this: Map<number, V> ): Map<number, V>;
 		sortByKeyDesc<V>( this: Map<number, V> ): Map<number, V>;
@@ -602,7 +604,35 @@ Map.prototype.push = function <K, V>( this: Map<K, V[]>, key: K, ...values: V[] 
 }
 
 Map.prototype.pop = function <K, V>( this: Map<K, V[]>, key: K ): V | undefined {
-	return this.get( key )?.pop();
+	const items = this.get( key );
+	const value = items?.pop();
+
+	if ( items?.length === 0 ) {
+		this.delete( key );
+	}
+
+	return value;
+}
+
+Map.prototype.unshift = function <K, V>( this: Map<K, V[]>, key: K, ...values: V[] ): Map<K, V[]> {
+	if ( !this.has( key ) ) {
+		return this.set( key, values );
+	}
+
+	this.get( key )!.unshift( ...values );
+
+	return this;
+}
+
+Map.prototype.shift = function <K, V>( this: Map<K, V[]>, key: K ): V | undefined {
+	const items = this.get( key );
+	const value = items?.shift();
+
+	if ( items?.length === 0 ) {
+		this.delete( key );
+	}
+
+	return value;
 }
 
 Map.prototype.sortBy = function <K, V>( this: Map<K, V>, callback: ( ( item: V, key: K, index: number ) => number ) ): Map<K, V> {
