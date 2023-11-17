@@ -65,3 +65,71 @@ export class Grid<T, C extends Cell<T>> {
 		return this.cells.flat( 1 );
 	}
 }
+
+/**
+ * Generates a ring of points in a square around a centre point
+ *
+ * Example rings at radius 1 and 2:
+ * ```
+ *          2 2 2 2 2
+ * 1 1 1    2       2
+ * 1 x 1    2   x   2
+ * 1 1 1    2       2
+ *          2 2 2 2 2
+ * ```
+ */
+export function* pointsAroundSquare( x: number, y: number, radius: number ): Generator<[ number, number ], void, unknown> {
+	// North
+	for ( let x_ = x - radius + 1; x_ <= x + radius; x_++ ) {
+		yield [ x_, y - radius ];
+	}
+
+	// East
+	for ( let y_ = y - radius + 1; y_ <= y + radius; y_++ ) {
+		yield [ x + radius, y_ ];
+	}
+
+	// South
+	for ( let x_ = x + radius - 1; x_ >= x - radius; x_-- ) {
+		yield [ x_, y + radius ];
+	}
+
+	// West
+	for ( let y_ = y + radius - 1; y_ >= y - radius; y_-- ) {
+		yield [ x - radius, y_ ];
+	}
+}
+
+/**
+ * Generates a ring of points around a centre point using manhattan distance (diamond)
+ *
+ * Example rings:
+ * ```
+ *                2          3   3      4       4
+ *     1        2   2      3       3
+ *   1 x 1    2   x   2        x            x
+ *     1        2   2      3       3
+ *                2          3   3      4       4
+ * ```
+ */
+export function* pointsAroundManhattan( x: number, y: number, radius: number ): Generator<[ number, number ], void, unknown> {
+	// Northeast
+	for ( let i = 0; i < radius; i++ ) {
+		yield [ x + i, y - radius + i ];
+	}
+
+	// Southeast
+	for ( let i = 0; i < radius; i++ ) {
+		yield [ x + radius - i, y + i ];
+	}
+
+	// Southwest
+	for ( let i = 0; i < radius; i++ ) {
+		yield [ x - i, y + radius - i ];
+	}
+
+	// Northwest
+	for ( let i = 0; i < radius; i++ ) {
+		yield [ x - radius + i, y - i ];
+	}
+}

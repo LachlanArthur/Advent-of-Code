@@ -1,4 +1,4 @@
-type KeysWithValsOfType<T, V> = keyof { [ P in keyof T as T[ P ] extends V ? P : never ]: P } & keyof T;
+type KeysWithValuesOfType<T, V> = keyof { [ P in keyof T as T[ P ] extends V ? P : never ]: P } & keyof T;
 
 declare global {
 	interface Array<T> {
@@ -31,10 +31,13 @@ declare global {
 		product( this: number[] ): number;
 		sortByNumberAsc( this: number[] ): T[];
 		sortByNumberDesc( this: number[] ): T[];
-		sortByNumberAsc<T, K extends KeysWithValsOfType<T, number>>( this: T[], property: K ): T[];
-		sortByNumberDesc<T, K extends KeysWithValsOfType<T, number>>( this: T[], property: K ): T[];
+		sortByNumberAsc<T, K extends KeysWithValuesOfType<T, number>>( this: T[], property: K ): T[];
+		sortByNumberDesc<T, K extends KeysWithValuesOfType<T, number>>( this: T[], property: K ): T[];
+		sortByNumberAsc<T>( this: T[], callback: ( item: T ) => number ): T[];
+		sortByNumberDesc<T>( this: T[], callback: ( item: T ) => number ): T[];
 		max( this: number[] ): number;
 		min( this: number[] ): number;
+		minMax( this: number[] ): [ number, number ];
 		pluck<K extends keyof T>( this: T[], property: K ): T[ K ][];
 		tee<T>( this: T[], callback: ( items: T[] ) => void ): T[];
 		prepend<T>( this: T[], ...items: T[] ): T[];
@@ -52,6 +55,10 @@ declare global {
 		countUnique<T, K extends keyof T>( this: T[], property: K ): Map<K, number>;
 		first<T>( this: T[] ): T | undefined;
 		last<T>( this: T[] ): T | undefined;
+		maxBy<T, K extends KeysWithValuesOfType<T, number>>( this: T[], property: K ): T | undefined;
+		minBy<T, K extends KeysWithValuesOfType<T, number>>( this: T[], property: K ): T | undefined;
+		maxBy<T>( this: T[], callback: ( item: T ) => number ): T | undefined;
+		minBy<T>( this: T[], callback: ( item: T ) => number ): T | undefined;
 	}
 
 	interface ArrayConstructor {
@@ -73,6 +80,11 @@ declare global {
 		increment<K>( this: Map<K, number>, key: K, amount?: number ): Map<K, number>;
 		decrement<K>( this: Map<K, number>, key: K, amount?: number ): Map<K, number>;
 		flip<K, V>( this: Map<K, V> ): Map<V, K>;
+		push<K, V>( this: Map<K, V[]>, key: K, value: V ): Map<K, V[]>;
+		pop<K, V>( this: Map<K, V[]>, key: K ): V | undefined;
+		sortBy<K, V>( this: Map<K, V>, callback: ( ( item: V, key: K, index: number ) => number ) ): Map<K, V>;
+		sortByKeyAsc<V>( this: Map<number, V> ): Map<number, V>;
+		sortByKeyDesc<V>( this: Map<number, V> ): Map<number, V>;
 	}
 
 	interface MapConstructor {
@@ -298,19 +310,23 @@ Array.prototype.product = function ( this: number[] ) {
 	return product;
 }
 
-Array.prototype.sortByNumberAsc = function ( this: any[], property?: string ) {
-	if ( property ) {
-		return this.sort( ( a, b ): number => a[ property ] - b[ property ] );
+Array.prototype.sortByNumberAsc = function <T>( this: T[], property?: string | ( ( item: T ) => number ) ) {
+	if ( typeof property === 'function' ) {
+		return this.toSorted( ( a, b ): number => property( a ) - property( b ) );
+	} else if ( property ) {
+		return this.toSorted( ( a: any, b: any ): number => a[ property ] - b[ property ] );
 	} else {
-		return this.sort( ( a, b ): number => a - b );
+		return this.toSorted( ( a: any, b: any ): number => a - b );
 	}
 }
 
-Array.prototype.sortByNumberDesc = function ( this: any[], property?: string ) {
-	if ( property ) {
-		return this.sort( ( a, b ): number => b[ property ] - a[ property ] );
+Array.prototype.sortByNumberDesc = function <T>( this: T[], property?: string | ( ( item: T ) => number ) ) {
+	if ( typeof property === 'function' ) {
+		return this.toSorted( ( a, b ): number => property( b ) - property( a ) );
+	} else if ( property ) {
+		return this.toSorted( ( a: any, b: any ): number => b[ property ] - a[ property ] );
 	} else {
-		return this.sort( ( a, b ): number => b - a );
+		return this.toSorted( ( a: any, b: any ): number => b - a );
 	}
 }
 
@@ -320,6 +336,10 @@ Array.prototype.max = function ( this: number[] ) {
 
 Array.prototype.min = function ( this: number[] ) {
 	return min( this );
+}
+
+Array.prototype.minMax = function ( this: number[] ) {
+	return [ min( this ), max( this ) ];
 }
 
 Array.prototype.pluck = function ( property: string | number | symbol ) {
@@ -449,6 +469,14 @@ Array.prototype.last = function <T>( this: T[] ): T | undefined {
 	return this.at( -1 );
 }
 
+Array.prototype.maxBy = function <T, K extends KeysWithValuesOfType<T, number>>( this: T[], property: K | ( ( item: T ) => number ) ) {
+	return this.sortByNumberDesc( property as any )[ 0 ];
+}
+
+Array.prototype.minBy = function <T, K extends KeysWithValuesOfType<T, number>>( this: T[], property: K | ( ( item: T ) => number ) ) {
+	return this.sortByNumberAsc( property as any )[ 0 ];
+}
+
 Array.fromLines = function ( lines: string ) {
 	return lines.lines();
 }
@@ -561,6 +589,38 @@ Map.prototype.flip = function <K, V>( this: Map<K, V> ): Map<V, K> {
 	}
 
 	return output;
+}
+
+Map.prototype.push = function <K, V>( this: Map<K, V[]>, key: K, ...values: V[] ): Map<K, V[]> {
+	if ( !this.has( key ) ) {
+		return this.set( key, values );
+	}
+
+	this.get( key )!.push( ...values );
+
+	return this;
+}
+
+Map.prototype.pop = function <K, V>( this: Map<K, V[]>, key: K ): V | undefined {
+	return this.get( key )?.pop();
+}
+
+Map.prototype.sortBy = function <K, V>( this: Map<K, V>, callback: ( ( item: V, key: K, index: number ) => number ) ): Map<K, V> {
+	return new Map(
+		this
+			.entriesArray()
+			.entriesArray()
+			.toSorted( ( [ indexA, [ keyA, valueA ] ], [ indexB, [ keyB, valueB ] ] ) => callback( valueA, keyA, indexA ) - callback( valueB, keyB, indexB ) )
+			.pluck( '1' )
+	);
+}
+
+Map.prototype.sortByKeyAsc = function <V>( this: Map<number, V> ) {
+	return this.sortBy( ( _, key ) => key );
+}
+
+Map.prototype.sortByKeyDesc = function <V>( this: Map<number, V> ) {
+	return this.sortBy( ( _, key ) => -key );
 }
 
 Map.zip = function <K, V>( keys: K[], values: V[], fill?: V ): Map<K, V> {

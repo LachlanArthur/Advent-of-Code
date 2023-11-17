@@ -1,3 +1,24 @@
+import './extensions.ts';
+
+export function renderCoords( coords: [ number, number ][] ): void;
+export function renderCoords( coordsWithChar: [ number, number, string ][] ): void;
+export function renderCoords( coords: [ number, number ][] | [ number, number, string ][] ): void {
+	const coordsWithChar: [ number, number, string ][] = coords.map( ( [ x, y, c ] ) => [ x, y, c ?? '#' ] );
+
+	const [ minX, maxX ] = coordsWithChar.pluck( '0' ).minMax();
+	const [ minY, maxY ] = coordsWithChar.pluck( '1' ).minMax();
+	const width = maxX - minX + 1;
+	const height = maxY - minY + 1;
+
+	const grid: string[][] = Array.filled( height, () => Array.filled( width, () => '.' ) );
+
+	for ( const [ x, y, c ] of coordsWithChar ) {
+		grid[ y - minY ][ x - minX ] = c;
+	}
+
+	console.log( grid.map( row => row.join( '' ) ).join( '\n' ) );
+}
+
 export function renderBrailleGrid( grid: boolean[][] ) {
 	const height = grid.length;
 	const width = grid[ 0 ].length;
