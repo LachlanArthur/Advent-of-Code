@@ -1,5 +1,6 @@
 import '../../extensions.ts';
 import { bench } from '../../bench.ts';
+import { Deque } from '../../lib/deque.ts';
 
 import examples from './examples.ts';
 import input from './input.ts';
@@ -9,37 +10,20 @@ function parse( input: string ) {
 }
 
 function part1( playerCount: number, marbleCount: number ): number {
-	const scores = new Map<number, number>();
+	const scores = Array.filled( playerCount, 0 );
+	const circle = new Deque( [ 0 ] );
 
-	let circle = [ 0 ];
-
-	playerCount < 10 && console.log( `[-]  (0)` );
-
-	for (
-		let nextMarble = 1,
-		currentPlayer = 0,
-		currentIndex = 0;
-		nextMarble <= marbleCount;
-		playerCount < 10 && console.log( `[${currentPlayer + 1}] ${circle.map( ( x, i ) => ( i === currentIndex ? `(${x})` : ` ${x} ` ).padStart( 4, ' ' ) ).join( '' )}` ),
-		nextMarble++,
-		currentPlayer = ( currentPlayer + 1 ) % playerCount
-	) {
-		if ( nextMarble % 23 === 0 ) {
-			currentIndex = ( currentIndex - 7 + circle.length ) % circle.length;
-			scores.increment( currentPlayer, nextMarble + circle.splice( currentIndex, 1 )[ 0 ] );
-			continue;
+	for ( let marble = 1; marble <= marbleCount; marble++ ) {
+		if ( marble % 23 === 0 ) {
+			circle.rotate( -7 );
+			scores[ marble % playerCount ] += marble + circle.pop();
+		} else {
+			circle.rotate( 2 );
+			circle.push( marble );
 		}
-
-		let nextIndex = ( currentIndex + 2 + circle.length ) % circle.length;
-		if ( nextIndex === 0 ) {
-			nextIndex = circle.length;
-		}
-
-		circle.splice( nextIndex, 0, nextMarble );
-		currentIndex = nextIndex;
 	}
 
-	return scores.valuesArray().max()!;
+	return scores.max();
 }
 
 for ( const [ i, [ example, answer ] ] of examples.entries() ) {
@@ -48,8 +32,8 @@ for ( const [ i, [ example, answer ] ] of examples.entries() ) {
 
 bench( 'part 1 input', () => part1( ...parse( input ) ) );
 
-// function part2( playerCount: number, marbleCount: number ): number {
+function part2( playerCount: number, marbleCount: number ): number {
+	return part1( playerCount, marbleCount * 100 );
+}
 
-// }
-
-// bench( 'part 2 input', () => part2( ...parse( input ) ) );
+bench( 'part 2 input', () => part2( ...parse( input ) ) );
