@@ -6,6 +6,8 @@ declare global {
 		chunks( size: number, leftovers?: boolean ): T[][];
 		sliding( size: number, skip?: number, leftovers?: boolean ): T[][];
 		unique(): T[];
+		uniqueBy<K extends keyof T>( property: K ): T[];
+		uniqueBy( callback: ( item: T ) => any ): T[];
 		duplicates(): T[];
 		hasDuplicates(): boolean;
 		entriesArray(): [ number, T ][];
@@ -29,6 +31,12 @@ declare global {
 		transpose<T>( this: T[][] ): T[][];
 		sum( this: number[] ): number;
 		product( this: number[] ): number;
+		mean( this: number[] ): number;
+		median( this: number[] ): number;
+		/**
+		 * Standard deviation
+		 */
+		stdDev( this: number[] ): number;
 		sortByNumberAsc( this: number[] ): T[];
 		sortByNumberDesc( this: number[] ): T[];
 		sortByNumberAsc<T, K extends KeysWithValuesOfType<T, number>>( this: T[], property: K ): T[];
@@ -165,6 +173,22 @@ Array.prototype.sliding = function <T>( this: T[], size: number, slide = 1, left
 
 Array.prototype.unique = function <T>( this: T[] ) {
 	return Array.from( new Set( this ) );
+}
+
+Array.prototype.uniqueBy = function <T, K extends keyof T>( this: T[], property: K | ( ( item: T ) => any ) ) {
+	const seen = new Set();
+
+	return this.filter( item => {
+		const key = typeof property === 'function' ? property( item ) : item[ property ];
+
+		if ( seen.has( key ) ) {
+			return false;
+		}
+
+		seen.add( key );
+
+		return true;
+	} );
 }
 
 Array.prototype.duplicates = function <T>( this: T[] ) {
@@ -310,6 +334,20 @@ Array.prototype.product = function ( this: number[] ) {
 	}
 
 	return product;
+}
+
+Array.prototype.mean = function ( this: number[] ): number {
+	return this.sum() / this.length;
+}
+
+Array.prototype.median = function ( this: number[] ): number {
+	return this.sortByNumberAsc()[ Math.floor( this.length / 2 ) ];
+}
+
+Array.prototype.stdDev = function ( this: number[] ): number {
+	const mean = this.mean();
+
+	return Math.sqrt( this.map( x => ( x - mean ) ** 2 ).mean() );
 }
 
 Array.prototype.sortByNumberAsc = function <T>( this: T[], property?: string | ( ( item: T ) => number ) ) {
