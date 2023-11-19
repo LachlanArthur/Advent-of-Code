@@ -145,3 +145,15 @@ export function* pointsAroundManhattan( x: number, y: number, radius: number ): 
 		yield [ x - radius + i, y - i ];
 	}
 }
+
+export function* generateCoordinates( minX: number, minY: number, maxX: number, maxY: number ): Generator<[ number, number ], void, unknown> {
+	for ( let y = minY; y <= maxY; y++ ) {
+		for ( let x = minX; x <= maxX; x++ ) {
+			yield [ x, y ];
+		}
+	}
+}
+
+export function cellIndexFromCoordinates( x: number, y: number, minX: number, minY: number, maxX: number, maxY: number ): number {
+	return ( y - minY ) * ( maxX - minX + 1 ) + ( x - minX );
+}
