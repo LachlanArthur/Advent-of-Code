@@ -22,6 +22,18 @@ export class Cell<T> {
 	get right(): Cell<T> | undefined { return this.grid.getCell( this.x + 1, this.y ) }
 
 	get index(): number { return this.y * this.grid.width + this.x }
+
+	aroundSquare( radius: number ): Cell<T>[] {
+		return Array
+			.from( pointsAroundSquare( this.x, this.y, radius ), point => this.grid.getCell( ...point ) )
+			.filter( Boolean ) as Cell<T>[];
+	}
+
+	aroundManhattan( radius: number ): Cell<T>[] {
+		return Array
+			.from( pointsAroundManhattan( this.x, this.y, radius ), point => this.grid.getCell( ...point ) )
+			.filter( Boolean ) as Cell<T>[];
+	}
 }
 
 export class Grid<T, C extends Cell<T>> {
