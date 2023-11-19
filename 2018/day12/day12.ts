@@ -11,9 +11,7 @@ class Pot {
 	constructor( public index: number, public alive: boolean ) { }
 
 	growLeft(): Pot {
-		if ( this.l ) {
-			throw new Error( 'Pot already has left' );
-		}
+		if ( this.l ) throw new Error( 'left already exists' );
 
 		this.l = new Pot( this.index - 1, true );
 		this.l.r = this;
@@ -22,9 +20,7 @@ class Pot {
 	}
 
 	growRight(): Pot {
-		if ( this.r ) {
-			throw new Error( 'Pot already has right' );
-		}
+		if ( this.r ) throw new Error( 'right already exists' );
 
 		this.r = new Pot( this.index + 1, true );
 		this.r.l = this;
@@ -38,11 +34,11 @@ class Kernel {
 
 	apply( ll: boolean, l: boolean, c: boolean, r: boolean, rr: boolean ): boolean {
 		return this.rules[
-			+ll << 4 |
-			+l << 3 |
-			+c << 2 |
-			+r << 1 |
-			+rr
+			( ll as any ) << 4 |
+			( l as any ) << 3 |
+			( c as any ) << 2 |
+			( r as any ) << 1 |
+			( rr as any ) << 0
 		] ?? false;
 	}
 }
@@ -98,6 +94,9 @@ function part1( input: string, generations: number ): number {
 	let firstPot = pots.at( 0 )!;
 	let lastPot = pots.at( -1 )!;
 
+	let previousPattern: boolean[] = [];
+	let previousPatternIndex: number = 0;
+
 	for ( let i = 1; i <= generations; i++ ) {
 		const nextState = reducePots( firstPot, ( state, pot ) => {
 			return state.set( pot.index, kernel.apply(
@@ -134,6 +133,34 @@ function part1( input: string, generations: number ): number {
 		if ( createRight ) {
 			lastPot = lastPot.growRight();
 		}
+
+		// Prune dead left pots
+		while ( !firstPot.alive && firstPot.r ) {
+			firstPot = firstPot.r;
+			firstPot.l = undefined;
+		}
+
+		// Prune dead right pots
+		while ( !lastPot.alive && lastPot.l ) {
+			lastPot = lastPot.l;
+			lastPot.r = undefined;
+		}
+
+		const currentPattern = reducePots<boolean[]>( firstPot, ( pattern, pot ) => {
+			pattern.push( pot.alive );
+			return pattern;
+		}, [] );
+
+		if ( currentPattern.same( previousPattern ) ) {
+			let finalIndex = ( generations - i ) * ( firstPot.index - previousPatternIndex ) + firstPot.index;
+
+			forEachPots( firstPot, pot => pot.index = finalIndex++ );
+
+			break;
+		}
+
+		previousPattern = currentPattern;
+		previousPatternIndex = firstPot.index;
 	}
 
 	return reducePots( firstPot, ( total, pot ) => total += ( pot.alive ? pot.index : 0 ), 0 );
@@ -143,4 +170,4 @@ bench( 'part 1 example', () => part1( example, 20 ), 325 );
 
 bench( 'part 1 input', () => part1( input, 20 ) );
 
-// Part 2 solution: Log the output for up to generation 300, find the cycle, extrapolate manually
+bench( 'part 2 input', () => part1( input, 50000000000 ) );
