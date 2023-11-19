@@ -178,17 +178,14 @@ Array.prototype.unique = function <T>( this: T[] ) {
 Array.prototype.uniqueBy = function <T, K extends keyof T>( this: T[], property: K | ( ( item: T ) => any ) ) {
 	const seen = new Set();
 
-	return this.filter( item => {
-		const key = typeof property === 'function' ? property( item ) : item[ property ];
+	if ( typeof property === 'function' ) {
+		return this.filter( item => {
+			const key = property( item );
+			return !seen.has( key ) && seen.add( key );
+		} );
+	}
 
-		if ( seen.has( key ) ) {
-			return false;
-		}
-
-		seen.add( key );
-
-		return true;
-	} );
+	return this.filter( item => !seen.has( item[ property ] ) && seen.add( item[ property ] ) );
 }
 
 Array.prototype.duplicates = function <T>( this: T[] ) {
