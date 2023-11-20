@@ -119,8 +119,16 @@ declare global {
 	}
 
 	interface Iterator<T> {
+		toArray(): T[];
+		logAll( message?: string ): this;
+		logEach( message?: string ): IterableIterator<T>;
 		runningTotal( this: IterableIterator<number> ): IterableIterator<number>;
 		firstRepeated( this: IterableIterator<T> ): T | null;
+		take( count: number ): IterableIterator<T>;
+		skip( count: number ): IterableIterator<T>;
+		window( size: number ): IterableIterator<T[]>;
+		entries(): IterableIterator<[ number, T ]>;
+		find( predicate: ( item: T ) => boolean ): T | undefined;
 	}
 }
 
@@ -727,6 +735,35 @@ String.prototype.linesToNumbers = function () {
 
 const IteratorPrototype = Object.getPrototypeOf( Object.getPrototypeOf( [][ Symbol.iterator ]() ) );
 
+IteratorPrototype.toArray = function <T>( this: IterableIterator<T> ) {
+	return Array.from( this );
+}
+
+IteratorPrototype.logAll = function <T>( this: IterableIterator<T>, message?: string ) {
+	if ( message ) {
+		console.group( message );
+	}
+
+	console.log( this.toArray() );
+
+	if ( message ) {
+		console.groupEnd();
+	}
+
+	return this;
+}
+
+IteratorPrototype.logEach = function* <T>( this: IterableIterator<T>, message?: string ) {
+	for ( const item of this ) {
+		if ( message ) {
+			console.log( message, item );
+		} else {
+			console.log( item );
+		}
+		yield item;
+	}
+}
+
 IteratorPrototype.runningTotal = function* ( this: IterableIterator<number> ) {
 	let total = 0;
 
@@ -748,6 +785,60 @@ IteratorPrototype.firstRepeated = function <T>( this: IterableIterator<T> ) {
 	}
 
 	return null;
+}
+
+IteratorPrototype.take = function* <T>( this: IterableIterator<T>, count: number ) {
+	let i = 0;
+
+	for ( const item of this ) {
+		if ( i >= count ) break;
+		yield item;
+		i++;
+	}
+}
+
+IteratorPrototype.skip = function* <T>( this: IterableIterator<T>, count: number ) {
+	let i = 0;
+
+	for ( const item of this ) {
+		if ( i < count ) {
+			i++;
+			continue;
+		}
+
+		yield item;
+	}
+}
+
+IteratorPrototype.window = function*<T>( this: IterableIterator<T>, size: number ) {
+	const window: T[] = [];
+
+	for ( const item of this ) {
+		window.push( item );
+
+		if ( window.length > size ) {
+			window.shift();
+		}
+
+		if ( window.length === size ) {
+			yield window.slice();
+		}
+	}
+}
+
+IteratorPrototype.entries = function* <T>( this: IterableIterator<T> ) {
+	let i = 0;
+	for ( const item of this ) {
+		yield [ i++, item ];
+	}
+}
+
+IteratorPrototype.find = function <T>( this: IterableIterator<T>, predicate: ( item: T ) => boolean ) {
+	for ( const item of this ) {
+		if ( predicate( item ) ) {
+			return item;
+		}
+	}
 }
 
 export function collect<T>( input: Array<T> ): Array<T>;
