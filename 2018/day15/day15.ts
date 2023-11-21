@@ -416,6 +416,59 @@ class Battlefield {
 			}
 		);
 	}
+
+	play() {
+		let previousRound = 0;
+		let actionsTaken = 0;
+		let renderMap = true;
+
+		const turns = this.turns();
+		let turn: IteratorResult<[ number, Elf | Goblin ], number>;
+
+		while ( !( turn = turns.next() ).done ) {
+			const [ round, combatant ] = turn.value;
+
+			if ( previousRound !== round ) {
+				DEBUG_MAP && renderMap && this.render();
+
+				if ( actionsTaken === 0 && previousRound > 0 ) {
+					throw new Error( `🛑 Stalemate on round ${round}` );
+				}
+
+				previousRound = round;
+				actionsTaken = 0;
+				renderMap = false;
+				DEBUG_ACTIONS && console.log( '🔔 Round %o', round );
+			}
+
+			let target: Elf | Goblin | undefined = this.opponentsNear( combatant ).first();
+
+			if ( !target && this.move( combatant ) ) {
+				actionsTaken++;
+				renderMap = true;
+				target = this.opponentsNear( combatant ).first();
+			}
+
+			if ( target ) {
+				if ( this.attack( combatant, target ) ) {
+					renderMap = true;
+				}
+				actionsTaken++;
+			}
+		}
+
+		DEBUG_ACTIONS && console.log( '🛑 End of battle. The %s win!', this.elves.size === 0 ? 'Goblins' : 'Elves' );
+		DEBUG_MAP && this.render();
+
+		const finalRound = turn.value;
+		const winnerHp = (
+			this.elves.size === 0
+				? this.goblins
+				: this.elves
+		).valuesArray().pluck( 'hp' ).sum();
+
+		return `${finalRound} * ${winnerHp} = ${finalRound * winnerHp}`;
+	}
 }
 
 function isDefined<T>( x: T | undefined ): x is T {
@@ -425,69 +478,34 @@ function isDefined<T>( x: T | undefined ): x is T {
 function part1( input: string ) {
 	const battlefield = new Battlefield( input );
 
-	let previousRound = 0;
-	let actionsTaken = 0;
-	let renderMap = true;
-
-	const turns = battlefield.turns();
-	let turn: IteratorResult<[ number, Elf | Goblin ], number>;
-
-	while ( !( turn = turns.next() ).done ) {
-		const [ round, combatant ] = turn.value;
-
-		if ( previousRound !== round ) {
-			DEBUG_MAP && renderMap && battlefield.render();
-
-			if ( actionsTaken === 0 && previousRound > 0 ) {
-				throw new Error( `🛑 Stalemate on round ${round}` );
-			}
-
-			previousRound = round;
-			actionsTaken = 0;
-			renderMap = false;
-			DEBUG_ACTIONS && console.log( '🔔 Round %o', round );
-		}
-
-		let target: Elf | Goblin | undefined = battlefield.opponentsNear( combatant ).first();
-
-		if ( !target && battlefield.move( combatant ) ) {
-			actionsTaken++;
-			renderMap = true;
-			target = battlefield.opponentsNear( combatant ).first();
-		}
-
-		if ( target ) {
-			if ( battlefield.attack( combatant, target ) ) {
-				renderMap = true;
-			}
-			actionsTaken++;
-		}
-	}
-
-	DEBUG_ACTIONS && console.log( '🛑 End of battle. The %s win!', battlefield.elves.size === 0 ? 'Goblins' : 'Elves' );
-	DEBUG_MAP && battlefield.render();
-
-	const finalRound = turn.value;
-	const winnerHp = (
-		battlefield.elves.size === 0
-			? battlefield.goblins
-			: battlefield.elves
-	).valuesArray().pluck( 'hp' ).sum();
-
-	return `${finalRound} * ${winnerHp} = ${finalRound * winnerHp}`;
+	return battlefield.play();
 }
 
 for ( const [ example, answer ] of examples ) {
 	bench( 'part 1 example', () => part1( example ), answer );
-	// break;
 }
 
 bench( 'part 1 input', () => part1( input ) );
 
-// function part2( input: string ) {
+function part2( input: string ) {
+	for ( let elvenPower = 3; true; elvenPower++ ) {
+		const battlefield = new Battlefield( input );
+		const elfCount = battlefield.elves.size;
 
-// }
+		for ( const elf of battlefield.elves.values() ) {
+			elf.power = elvenPower;
+		}
 
-// bench( 'part 2 example', () => part2( example ), undefined );
+		const result = battlefield.play();
 
-// bench( 'part 2 input', () => part2( input ) );
+		if ( battlefield.elves.size === elfCount ) {
+			return result;
+		}
+	}
+}
+
+for ( const [ example, , answer ] of examples ) {
+	bench( 'part 2 example', () => part2( example ), answer );
+}
+
+bench( 'part 2 input', () => part2( input ) );
