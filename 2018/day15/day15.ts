@@ -325,8 +325,7 @@ class Battlefield {
 					)
 					.map( vertex => vertex.index )
 				)
-				.filter( path => path.length > 0 )
-				.sort( ( a, b ) => a.at( -1 )! - b.at( -1 )! ) // Prefer earlier destinations
+				.filter( path => path.length > 0 );
 
 			for ( const path of paths ) {
 				pathsByLength.push( path.length, path );
@@ -353,7 +352,10 @@ class Battlefield {
 			}
 		}
 
-		const shortestPath = pathsByLength.get( pathsByLength.keysArray().min()! )![ 0 ];
+		const shortestPaths = pathsByLength.get( pathsByLength.keysArray().min()! )!;
+
+		// Tiebreak by the "reading order" of the target
+		const shortestPath = shortestPaths.sort( ( a, b ) => a.last()! - b.last()! ).first()!;
 
 		const newIndex = shortestPath.first()!;
 
@@ -477,6 +479,7 @@ function part1( input: string ) {
 
 for ( const [ example, answer ] of examples ) {
 	bench( 'part 1 example', () => part1( example ), answer );
+	// break;
 }
 
 bench( 'part 1 input', () => part1( input ) );
