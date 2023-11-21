@@ -7,6 +7,7 @@ import input from './input.ts';
 import { bench } from '../../bench.ts';
 
 export class Valve implements Vertex {
+	traversible = true;
 	edges = new Map<Valve, number>();
 
 	constructor( public name: string, public rate: number ) { }

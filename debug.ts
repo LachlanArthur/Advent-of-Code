@@ -1,12 +1,23 @@
 import './extensions.ts';
 
-export function renderCoords( coords: [ number, number ][] ): void;
-export function renderCoords( coordsWithChar: [ number, number, string ][] ): void;
-export function renderCoords( coords: [ number, number ][] | [ number, number, string ][] ): void {
-	const coordsWithChar: [ number, number, string ][] = coords.map( ( [ x, y, c ] ) => [ x, y, c ?? '#' ] );
+export function renderCoords( coords: [ number, number ][], meta?: ( y: number ) => string ): void;
+export function renderCoords( coordsWithChar: [ number, number, string ][], meta?: ( y: number ) => string ): void;
+export function renderCoords( coords: [ number, number ][] | [ number, number, string ][], meta?: ( y: number ) => string ): void {
+	const coordsWithChar: [ number, number, string ][] = [];
+	let minX = Infinity,
+		minY = Infinity,
+		maxX = -Infinity,
+		maxY = -Infinity;
 
-	const [ minX, maxX ] = coordsWithChar.pluck( '0' ).minMax();
-	const [ minY, maxY ] = coordsWithChar.pluck( '1' ).minMax();
+	for ( const [ x, y, c ] of coords ) {
+		coordsWithChar.push( [ x, y, c ?? '#' ] );
+
+		if ( x < minX ) minX = x;
+		if ( x > maxX ) maxX = x;
+		if ( y < minY ) minY = y;
+		if ( y > maxY ) maxY = y;
+	}
+
 	const width = maxX - minX + 1;
 	const height = maxY - minY + 1;
 
@@ -16,7 +27,7 @@ export function renderCoords( coords: [ number, number ][] | [ number, number, s
 		grid[ y - minY ][ x - minX ] = c;
 	}
 
-	console.log( grid.map( row => row.join( '' ) ).join( '\n' ) );
+	console.log( grid.map( ( row, y ) => row.join( '' ) + ( meta ? ' ' + meta( y ) : '' ) ).join( '\n' ) );
 }
 
 export function renderBrailleGrid( grid: boolean[][] ) {

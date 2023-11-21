@@ -13,6 +13,8 @@ const toPointKey = ( point: Point ) => point.join() as PointKey;
 const fromPointKey = ( key: PointKey ) => key.split( ',' ).map( Number ) as Point;
 
 class BlizVertex implements Vertex {
+	traversible = true;
+
 	constructor(
 		public x: number,
 		public y: number,

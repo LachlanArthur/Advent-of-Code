@@ -4,12 +4,14 @@ import { Cell, Grid } from "./grid.ts";
 
 export interface Vertex {
 	edges: Map<Vertex, number>;
+	traversible: boolean;
 
 	is( other: Vertex ): boolean;
 }
 
 export class GridVertex<T> implements Vertex {
 	edges = new Map<GridVertex<T>, number>();
+	traversible = true;
 
 	constructor( public x: number, public y: number, public value: T ) { }
 
@@ -58,6 +60,8 @@ export abstract class AStar<V extends Vertex> implements Pathfinder<V> {
 			openSet.delete( current );
 
 			for ( const [ edgeVertex, edgeWeight ] of current.edges as Map<V, number> ) {
+				if ( !edgeVertex.traversible ) continue;
+
 				const surroundGScore = gScore.get( edgeVertex ) ?? Infinity;
 				const tentativeGScore = currentGScore + edgeWeight;
 
@@ -165,6 +169,7 @@ export function dijkstra<T extends Vertex>( all: T[], start: T, end: T ): T[] {
 		const distU = dist.get( next )!;
 
 		for ( const [ edge, value ] of next.edges as Map<T, number> ) {
+			if ( !edge.traversible ) continue;
 			if ( !open.has( edge ) ) continue;
 
 			const alt = distU + value;
@@ -203,6 +208,7 @@ export function breadthFirstSearch<T extends Vertex>( start: T, end: T ) {
 		}
 
 		for ( const [ edge, value ] of next.edges as Map<T, number> ) {
+			if ( !edge.traversible ) continue;
 			if ( seen.has( edge ) ) continue;
 			seen.add( edge );
 			parents.set( edge, next );

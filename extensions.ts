@@ -67,6 +67,7 @@ declare global {
 		minBy<T, K extends KeysWithValuesOfType<T, number>>( this: T[], property: K ): T | undefined;
 		maxBy<T>( this: T[], callback: ( item: T ) => number ): T | undefined;
 		minBy<T>( this: T[], callback: ( item: T ) => number ): T | undefined;
+		aggregateColumns<O>( this: T[][], aggregator: ( values: T[] ) => O ): O[];
 	}
 
 	interface ArrayConstructor {
@@ -384,7 +385,7 @@ Array.prototype.min = function ( this: number[] ) {
 }
 
 Array.prototype.minMax = function ( this: number[] ) {
-	return [ min( this ), max( this ) ];
+	return minMax( this );
 }
 
 Array.prototype.pluck = function ( property: string | number | symbol ) {
@@ -520,6 +521,18 @@ Array.prototype.maxBy = function <T, K extends KeysWithValuesOfType<T, number>>(
 
 Array.prototype.minBy = function <T, K extends KeysWithValuesOfType<T, number>>( this: T[], property: K | ( ( item: T ) => number ) ) {
 	return this.sortByNumberAsc( property as any )[ 0 ];
+}
+
+Array.prototype.aggregateColumns = function <T, O>( this: T[][], aggregator: ( values: T[], columnIndex: number, columns: T[][] ) => O ): O[] {
+	const columns: T[][] = [];
+
+	for ( const row of this ) {
+		for ( const [ col, value ] of row.entries() ) {
+			( columns[ col ] ??= [] ).push( value );
+		}
+	}
+
+	return columns.map( aggregator );
 }
 
 Array.fromLines = function ( lines: string ) {
@@ -857,7 +870,7 @@ export function max( values: number[] ) {
 	let max = -Infinity;
 
 	while ( length-- ) {
-		max = values[ length ] > max ? values[ length ] : max;
+		if ( values[ length ] > max ) max = values[ length ];
 	}
 
 	return max;
@@ -869,8 +882,22 @@ export function min( values: number[] ) {
 	let min = Infinity;
 
 	while ( length-- ) {
-		min = values[ length ] < min ? values[ length ] : min;
+		if ( values[ length ] < min ) min = values[ length ];
 	}
 
 	return min;
+}
+
+// Can handle huge arrays
+export function minMax( values: number[] ): [ number, number ] {
+	let length = values.length;
+	let min = Infinity;
+	let max = -Infinity;
+
+	while ( length-- ) {
+		if ( values[ length ] < min ) min = values[ length ];
+		if ( values[ length ] > max ) max = values[ length ];
+	}
+
+	return [ min, max ];
 }
