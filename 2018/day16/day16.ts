@@ -104,13 +104,15 @@ const ops: Record<string, ( r: Quad, a: number, b: number, c: number ) => Quad> 
 	},
 }
 
+type OpName = keyof typeof ops;
+
 function part1( input: string ): number {
-	const { samples, program } = parse( input );
+	const { samples } = parse( input );
 
 	return samples
-		.filter( ( [ before, [ i, a, b, c ], after ] ) =>
-			Object.entries( ops )
-				.filter( ( [ name, op ] ) => op( before, a, b, c ).same( after ) )
+		.filter( ( [ before, [ , a, b, c ], after ] ) =>
+			Object.values( ops )
+				.filter( ( op ) => op( before, a, b, c ).same( after ) )
 				.length >= 3
 		)
 		.length;
@@ -118,10 +120,33 @@ function part1( input: string ): number {
 
 bench( 'part 1 input', () => part1( input ) );
 
-// function part2( input: string ) {
+function part2( input: string ): number {
+	const { samples, program } = parse( input );
+	const opCount = Object.keys( ops ).length;
+	const opNameSet = new Set<OpName>();
+	const opIds = new Map<number, OpName>();
 
-// }
+	while ( opCount !== opIds.size ) {
+		for ( const [ before, [ i, a, b, c ], after ] of samples ) {
+			if ( opIds.has( i ) ) continue;
 
-// bench( 'part 2 example', () => part2( example ), undefined );
+			const match = Object.entries( ops )
+				.filter( ( [ name, op ] ) => !opNameSet.has( name ) && op( before, a, b, c ).same( after ) );
 
-// bench( 'part 2 input', () => part2( input ) );
+			if ( match.length === 1 ) {
+				opIds.set( i, match[ 0 ][ 0 ] );
+				opNameSet.add( match[ 0 ][ 0 ] );
+			}
+		}
+	}
+
+	let r: Quad = [ 0, 0, 0, 0 ];
+
+	for ( const [ opId, a, b, c ] of program ) {
+		r = ops[ opIds.get( opId ) as OpName ]( r, a, b, c );
+	}
+
+	return r[ 3 ];
+}
+
+bench( 'part 2 input', () => part2( input ) );
