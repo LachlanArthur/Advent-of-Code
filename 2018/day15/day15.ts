@@ -14,6 +14,7 @@ abstract class Combatant {
 	hp = 200;
 	power = 3;
 	constructor( public index: number ) { }
+	get dead() { return this.hp <= 0 }
 }
 class Elf extends Combatant { }
 class Goblin extends Combatant { }
@@ -245,7 +246,7 @@ class Battlefield {
 					return round - 1;
 				}
 
-				if ( combatant.hp <= 0 ) {
+				if ( combatant.dead ) {
 					continue;
 				}
 
@@ -274,11 +275,11 @@ class Battlefield {
 	attack( a: Elf | Goblin, b: Elf | Goblin ): boolean {
 		DEBUG_ACTIONS && console.log( '💥 %o 💫 %o', a, b );
 
-		if ( a.hp <= 0 ) {
+		if ( a.dead ) {
 			throw new Error( `${a} is dead` );
 		}
 
-		if ( b.hp <= 0 ) {
+		if ( b.dead ) {
 			throw new Error( `${b} is dead` );
 		}
 
@@ -288,7 +289,7 @@ class Battlefield {
 
 		b.hp -= a.power;
 
-		if ( b.hp > 0 ) {
+		if ( !b.dead ) {
 			return false;
 		}
 
@@ -417,7 +418,7 @@ class Battlefield {
 		);
 	}
 
-	play() {
+	*play(): Generator<Combatant, string, undefined> {
 		let previousRound = 0;
 		let actionsTaken = 0;
 		let renderMap = true;
@@ -454,6 +455,10 @@ class Battlefield {
 					renderMap = true;
 				}
 				actionsTaken++;
+
+				if ( target.dead ) {
+					yield target;
+				}
 			}
 		}
 
@@ -478,7 +483,11 @@ function isDefined<T>( x: T | undefined ): x is T {
 function part1( input: string ) {
 	const battlefield = new Battlefield( input );
 
-	return battlefield.play();
+	const turns = battlefield.play();
+	let turn: IteratorResult<Combatant, string>;
+	while ( !( turn = turns.next() ).done ) { }
+
+	return turn.value;
 }
 
 for ( const [ example, answer ] of examples ) {
@@ -488,19 +497,22 @@ for ( const [ example, answer ] of examples ) {
 bench( 'part 1 input', () => part1( input ) );
 
 function part2( input: string ) {
-	for ( let elvenPower = 3; true; elvenPower++ ) {
+	simulate: for ( let elvenPower = 3; true; elvenPower++ ) {
 		const battlefield = new Battlefield( input );
-		const elfCount = battlefield.elves.size;
 
 		for ( const elf of battlefield.elves.values() ) {
 			elf.power = elvenPower;
 		}
 
-		const result = battlefield.play();
-
-		if ( battlefield.elves.size === elfCount ) {
-			return result;
+		const turns = battlefield.play();
+		let turn: IteratorResult<Combatant, string>;
+		while ( !( turn = turns.next() ).done ) {
+			if ( turn.value instanceof Elf ) {
+				continue simulate;
+			}
 		}
+
+		return turn.value;
 	}
 }
 
