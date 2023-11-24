@@ -1,4 +1,20 @@
+import { renderBrailleGrid, renderGrid, renderSextantGrid } from "./debug.ts";
 import "./extensions.ts";
+
+/**
+ * Shift all the coords as close to the origin as possible
+ */
+export function normaliseCoords( coords: [ number, number ][] ): [ number, number ][] {
+	let minX = Infinity,
+		minY = Infinity;
+
+	for ( const [ x, y ] of coords ) {
+		if ( x < minX ) minX = x;
+		if ( y < minY ) minY = y;
+	}
+
+	return coords.map( ( [ x, y ] ) => [ x - minX, y - minY ] );
+}
 
 export function manhattan( ax: number, ay: number, bx: number, by: number ): number {
 	return Math.abs( ax - bx ) + Math.abs( ay - by );
@@ -39,12 +55,19 @@ export class Cell<T> {
 export class Grid<T, C extends Cell<T>> {
 	readonly height: number;
 	readonly width: number;
+	cells: Map<number, Map<number, C>> = new Map();
 
-	constructor( public cells: C[][] ) {
+	constructor( cells: C[][] ) {
 		this.height = cells.length;
 		this.width = cells[ 0 ]?.length ?? 0;
 
 		cells.flat( 1 ).forEach( cell => cell.grid = this );
+
+		for ( const row of cells ) {
+			for ( const cell of row ) {
+				this.setCell( cell );
+			}
+		}
 	}
 
 	static fromString<T, C extends Cell<T>>( input: string, transform: ( char: string, x: number, y: number ) => T ) {
@@ -58,23 +81,43 @@ export class Grid<T, C extends Cell<T>> {
 	}
 
 	getCell( x: number, y: number ): C | undefined {
-		return this.cells[ y ]?.[ x ];
+		return this.cells.get( y )?.get( x );
 	}
 
 	setCell( cell: C ): this {
-		( this.cells[ cell.y ] ??= [] )[ cell.x ] = cell;
+		if ( !this.cells.has( cell.y ) ) {
+			this.cells.set( cell.y, new Map() );
+		}
+
+		this.cells.get( cell.y )!.set( cell.x, cell );
 
 		cell.grid = this;
 
 		return this;
 	}
 
+	toArray(): C[][] {
+		return this.cells.valuesArray().map( row => row.valuesArray() );
+	}
+
 	values(): T[][] {
-		return this.cells.map( row => row.pluck( 'value' ) );
+		return this.toArray().map( row => row.pluck( 'value' ) );
 	}
 
 	flatCells(): C[] {
-		return this.cells.flat( 1 );
+		return this.toArray().flat( 1 );
+	}
+
+	render( transform = ( cell: C ) => String( cell.value ) ) {
+		renderGrid( this.toArray(), transform );
+	}
+
+	renderBraille( transform = ( cell: C ) => Boolean( cell.value ) ) {
+		renderBrailleGrid( this.toArray(), transform );
+	}
+
+	renderSextant( transform = ( cell: C ) => Boolean( cell.value ) ) {
+		renderSextantGrid( this.toArray(), transform );
 	}
 }
 

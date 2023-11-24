@@ -30,7 +30,35 @@ export function renderCoords( coords: [ number, number ][] | [ number, number, s
 	console.log( grid.map( ( row, y ) => row.join( '' ) + ( meta ? ' ' + meta( y ) : '' ) ).join( '\n' ) );
 }
 
-export function renderBrailleGrid( grid: boolean[][] ) {
+export function renderGrid<T>( grid: T[][], transform = ( value: T ) => String( value ) ) {
+	console.log(
+		grid.map( row => row
+			.map( cell => transform( cell ) )
+			.join( '' )
+		)
+			.join( '\n' )
+	);
+}
+
+export function renderGridSpec( minX: number, maxX: number, minY: number, maxY: number, transform: ( x: number, y: number ) => string, meta?: ( y: number, row: string ) => string ) {
+	const width = maxX - minX + 1;
+	const height = maxY - minY + 1;
+
+	console.log(
+		Array.from(
+			{ length: height },
+			( _, y ) => {
+				const row = Array.from(
+					{ length: width },
+					( _, x ) => transform( x + minX, y + minY )
+				).join( '' );
+				return row + ( meta ? ' ' + meta( y + minY, row ) : '' );
+			}
+		).join( '\n' )
+	);
+}
+
+export function renderBrailleGrid<T>( grid: T[][], transform = ( value: T ) => Boolean( value ) ) {
 	const height = grid.length;
 	const width = grid[ 0 ].length;
 	const lines: string[] = [];
@@ -45,15 +73,59 @@ export function renderBrailleGrid( grid: boolean[][] ) {
 			// https://en.wikipedia.org/wiki/Braille_Patterns
 			line.push(
 				10240
-				+ ( +( grid[ y + 3 ]?.[ x + 1 ] ) << 7 )
-				+ ( +( grid[ y + 3 ]?.[ x + 0 ] ) << 6 )
-				+ ( +( grid[ y + 2 ]?.[ x + 1 ] ) << 5 )
-				+ ( +( grid[ y + 1 ]?.[ x + 1 ] ) << 4 )
-				+ ( +( grid[ y + 0 ]?.[ x + 1 ] ) << 3 )
-				+ ( +( grid[ y + 2 ]?.[ x + 0 ] ) << 2 )
-				+ ( +( grid[ y + 1 ]?.[ x + 0 ] ) << 1 )
-				+ ( +( grid[ y + 0 ]?.[ x + 0 ] ) << 0 )
+				+ ( ( transform( grid[ y + 3 ]?.[ x + 1 ] ) as any ) << 7 )
+				+ ( ( transform( grid[ y + 3 ]?.[ x + 0 ] ) as any ) << 6 )
+				+ ( ( transform( grid[ y + 2 ]?.[ x + 1 ] ) as any ) << 5 )
+				+ ( ( transform( grid[ y + 1 ]?.[ x + 1 ] ) as any ) << 4 )
+				+ ( ( transform( grid[ y + 0 ]?.[ x + 1 ] ) as any ) << 3 )
+				+ ( ( transform( grid[ y + 2 ]?.[ x + 0 ] ) as any ) << 2 )
+				+ ( ( transform( grid[ y + 1 ]?.[ x + 0 ] ) as any ) << 1 )
+				+ ( ( transform( grid[ y + 0 ]?.[ x + 0 ] ) as any ) << 0 )
 			);
+		}
+
+		lines.push( String.fromCharCode.apply( String, line ) );
+	}
+
+	console.log( lines.join( '\n' ) );
+}
+
+export function renderBrailleCoords( coords: [ number, number ][] ) {
+	renderBrailleGrid( Array.filledFromCoordinates( coords, () => true, () => false ) as boolean[][] );
+}
+
+export function renderSextantGrid<T>( grid: T[][], transform = ( value: T ) => Boolean( value ) ) {
+	const height = grid.length;
+	const width = grid[ 0 ].length;
+	const lines: string[] = [];
+
+	for ( let y = 0; y < height; y += 3 ) {
+		const line: number[] = [];
+
+		for ( let x = 0; x < width; x += 2 ) {
+			let value = 0
+				+ ( ( transform( grid[ y + 2 ]?.[ x + 1 ] ) as any ) << 5 )
+				+ ( ( transform( grid[ y + 2 ]?.[ x + 0 ] ) as any ) << 4 )
+				+ ( ( transform( grid[ y + 1 ]?.[ x + 1 ] ) as any ) << 3 )
+				+ ( ( transform( grid[ y + 1 ]?.[ x + 0 ] ) as any ) << 2 )
+				+ ( ( transform( grid[ y + 0 ]?.[ x + 1 ] ) as any ) << 1 )
+				+ ( ( transform( grid[ y + 0 ]?.[ x + 0 ] ) as any ) << 0 )
+
+			if ( value === 0 ) {
+				line.push( 32 ); // Space
+			} else if ( value === 64 ) {
+				line.push( 9608 ); // Full block
+			} else if ( value === 21 ) {
+				line.push( 9612 ); // Left half block
+			} else if ( value === 42 ) {
+				line.push( 9616 ); // Right half block
+			} else {
+				// Re-align due to replacements
+				if ( value > 42 ) value--;
+				if ( value > 21 ) value--;
+
+				line.push( 55358, 57087 + value );
+			}
 		}
 
 		lines.push( String.fromCharCode.apply( String, line ) );

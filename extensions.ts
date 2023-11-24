@@ -67,7 +67,7 @@ declare global {
 		minBy<T, K extends KeysWithValuesOfType<T, number>>( this: T[], property: K ): T | undefined;
 		maxBy<T>( this: T[], callback: ( item: T ) => number ): T | undefined;
 		minBy<T>( this: T[], callback: ( item: T ) => number ): T | undefined;
-		aggregateColumns<O>( this: T[][], aggregator: ( values: T[] ) => O ): O[];
+		aggregateColumns<T, O>( this: T[][], aggregator: ( values: T[] ) => O ): O[];
 	}
 
 	interface ArrayConstructor {
@@ -75,7 +75,8 @@ declare global {
 		fromChars( input: string ): string[];
 		fromRange( start: number, end: number, step?: number ): number[];
 		filled<T>( count: number, filler: T | ( ( value: undefined, index: number, array: undefined[] ) => T ) ): T[];
-		filledFromCoordinates<T>( coords: [ number, number ][], filler: ( coord: [ number, number ], index: number ) => T, blank?: T ): ( T | undefined )[][];
+		filledFromCoordinates<T>( coords: [ number, number ][], filler: ( coord: [ number, number ], index: number ) => T, blank: ( coord: [ number, number ] ) => T ): T[][];
+		filledFromCoordinates<T>( coords: [ number, number ][], filler: ( coord: [ number, number ], index: number ) => T, blank?: ( coord: [ number, number ] ) => T ): ( T | undefined )[][];
 		intersect<T>( ...arrays: T[] ): T;
 		same<T>( a: T[], b: T[] ): boolean;
 		zipEntries<K, V>( keys: K[], values: V[], fill?: V ): [ K, V ][];
@@ -563,7 +564,11 @@ Array.filled = function <T>( count: number, filler: T | ( ( value: undefined, in
 	return output.fill( filler );
 }
 
-Array.filledFromCoordinates = function <T>( coords: [ number, number ][], filler: ( coord: [ number, number ], index: number ) => T, blank?: T ): ( T | undefined )[][] {
+Array.filledFromCoordinates = function <T>(
+	coords: [ number, number ][],
+	filler: ( coord: [ number, number ], index: number ) => T,
+	blank?: ( coord: [ number, number ] ) => T,
+): ( T | undefined )[][] {
 	const grid: T[][] = [];
 
 	for ( const [ i, [ x, y ] ] of coords.entries() ) {
@@ -573,7 +578,7 @@ Array.filledFromCoordinates = function <T>( coords: [ number, number ][], filler
 	const maxWidth = Math.max( ...grid.pluck( 'length' ).filter( Number ) )
 
 	return new Array( grid.length ).fill( undefined )
-		.map( ( _, rowIndex ) => Array.filled( maxWidth, ( _, i ) => grid[ rowIndex ]?.[ i ] ?? blank ) )
+		.map( ( _, y ) => Array.filled( maxWidth, ( _, x ) => grid[ y ]?.[ x ] ?? ( typeof blank === 'undefined' ? undefined : blank( [ x, y ] ) ) ) )
 }
 
 Array.intersect = function <T>( ...arrays: T[] ) {
