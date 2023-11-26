@@ -68,6 +68,7 @@ declare global {
 		maxBy<T>( this: T[], callback: ( item: T ) => number ): T | undefined;
 		minBy<T>( this: T[], callback: ( item: T ) => number ): T | undefined;
 		aggregateColumns<T, O>( this: T[][], aggregator: ( values: T[] ) => O ): O[];
+		crossJoin<T, O>( this: T[], other: O[] ): [ T, O ][];
 	}
 
 	interface ArrayConstructor {
@@ -535,6 +536,18 @@ Array.prototype.aggregateColumns = function <T, O>( this: T[][], aggregator: ( v
 	}
 
 	return columns.map( aggregator );
+}
+
+Array.prototype.crossJoin = function <T, O>( this: T[], other: O[] ): [ T, O ][] {
+	const output: [ T, O ][] = [];
+
+	for ( const item of this ) {
+		for ( const otherItem of other ) {
+			output.push( [ item, otherItem ] );
+		}
+	}
+
+	return output;
 }
 
 Array.fromLines = function ( lines: string ) {
