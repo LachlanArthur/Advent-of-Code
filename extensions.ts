@@ -59,6 +59,9 @@ declare global {
 		clone<T>( this: T[] ): T[];
 		looping<T>( this: T[] ): Generator<T, never, undefined>;
 		combinations<T>( this: T[], size: number, unique?: boolean ): T[][];
+		combinationsLazy<T>( this: T[], size: number, unique?: boolean ): Generator<T[], void, undefined>;
+		permutations<T>( this: T[], size: number, unique?: boolean ): T[][];
+		permutationsLazy<T>( this: T[], size: number, unique?: boolean ): Generator<T[], void, undefined>;
 		countUnique<T>( this: T[] ): Map<T, number>;
 		countUnique<T, K extends keyof T>( this: T[], property: K ): Map<K, number>;
 		first<T>( this: T[] ): T | undefined;
@@ -108,6 +111,7 @@ declare global {
 		entriesArray(): [ number, T ][];
 		keysArray(): number[];
 		valuesArray(): T[];
+		same( other: Set<T> ): boolean;
 	}
 
 	interface Number {
@@ -468,26 +472,65 @@ Array.prototype.looping = function* <T>( this: T[] ) {
 }
 
 Array.prototype.combinations = function <T>( this: T[], size: number, unique = true ): T[][] {
-	if ( this.length === 0 ) return [ [] ];
+	return Array.from( this.combinationsLazy( size, unique ) );
+}
+
+Array.prototype.combinationsLazy = function* <T>( this: T[], size: number, unique = true ): Generator<T[], void, undefined> {
+	if ( this.length === 0 ) return;
 
 	const items = unique ? this.unique() : this;
-	if ( items.length === 1 ) return [ items ];
+	if ( items.length === 1 ) {
+		yield [ items[ 0 ] ];
+		return;
+	}
 
-	if ( size === 1 ) return items.map( item => [ item ] );
-
-	const output: T[][] = [];
+	if ( size === 1 ) {
+		for ( const item of items ) {
+			yield [ item ];
+		}
+		return;
+	}
 
 	for ( const [ index, item ] of items.entries() ) {
 		const rest = items.slice( index + 1 );
 		if ( rest.length === 0 ) continue;
-		const combinations = rest.combinations( size - 1, false );
+		const combinations = rest.combinationsLazy( size - 1, false );
 
 		for ( const combination of combinations ) {
-			output.push( [ item, ...combination ] );
+			yield [ item, ...combination ];
 		}
 	}
+}
 
-	return output;
+Array.prototype.permutations = function <T>( this: T[], size: number, unique = true ): T[][] {
+	return Array.from( this.permutationsLazy( size, unique ) );
+}
+
+Array.prototype.permutationsLazy = function* <T>( this: T[], size: number, unique = true ): Generator<T[], void, undefined> {
+	if ( this.length === 0 ) return;
+
+	const items = unique ? this.unique() : this;
+	if ( items.length === 1 ) {
+		yield [ items[ 0 ] ];
+		return;
+	}
+
+	if ( size === 1 ) {
+		for ( const item of items ) {
+			yield [ item ];
+		}
+		return;
+	}
+
+	for ( const [ index, item ] of items.entries() ) {
+		const rest = items.slice( 0, index ).concat( items.slice( index + 1 ) );
+		if ( rest.length === 0 ) continue;
+		const combinations = rest.permutationsLazy( size - 1, false );
+
+		for ( const combination of combinations ) {
+			yield [ item, ...combination ];
+		}
+	}
 }
 
 Array.prototype.countUnique = function <T, K extends keyof T>( this: T[], property?: K ) {
@@ -742,6 +785,16 @@ Set.prototype.keysArray = function () {
 
 Set.prototype.valuesArray = function () {
 	return Array.from( this.values() );
+}
+
+Set.prototype.same = function <T>( this: Set<T>, other: Set<T> ) {
+	if ( this.size !== other.size ) return false;
+
+	for ( const item of this ) {
+		if ( !other.has( item ) ) return false;
+	}
+
+	return true;
 }
 
 Number.prototype.mod = function ( mod: number ) {

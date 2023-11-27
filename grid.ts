@@ -168,6 +168,11 @@ export function* pointsAroundSquare( x: number, y: number, radius: number ): Gen
  * ```
  */
 export function* pointsAroundManhattan( x: number, y: number, radius: number ): Generator<[ number, number ], void, unknown> {
+	if ( radius === 0 ) {
+		yield [ x, y ];
+		return;
+	}
+
 	// Northeast
 	for ( let i = 0; i < radius; i++ ) {
 		yield [ x + i, y - radius + i ];
@@ -186,6 +191,32 @@ export function* pointsAroundManhattan( x: number, y: number, radius: number ): 
 	// Northwest
 	for ( let i = 0; i < radius; i++ ) {
 		yield [ x - radius + i, y - i ];
+	}
+}
+
+export function* pointsAroundManhattan3d( x: number, y: number, z: number, radius: number ): Generator<[ number, number, number ], void, unknown> {
+	if ( radius === 0 ) {
+		yield [ x, y, z ];
+		return;
+	}
+
+	// Upper layers
+	for ( let zLayer = -radius; zLayer < 0; zLayer++ ) {
+		for ( const coord of pointsAroundManhattan( x, y, radius + zLayer ) ) {
+			yield [ coord[ 0 ], coord[ 1 ], z + zLayer ];
+		}
+	}
+
+	// Middle layer
+	for ( const coord of pointsAroundManhattan( x, y, radius ) ) {
+		yield [ coord[ 0 ], coord[ 1 ], z ];
+	}
+
+	// Lower layers
+	for ( let zLayer = 1; zLayer <= radius; zLayer++ ) {
+		for ( const coord of pointsAroundManhattan( x, y, radius - zLayer ) ) {
+			yield [ coord[ 0 ], coord[ 1 ], z + zLayer ];
+		}
 	}
 }
 
