@@ -124,6 +124,7 @@ declare global {
 		linesAndChars(): string[][];
 		charCodes(): number[];
 		linesToNumbers(): number[];
+		extractNumbers(): number[];
 	}
 
 	interface Iterator<T> {
@@ -820,6 +821,10 @@ String.prototype.charCodes = function ( this: string ) {
 
 String.prototype.linesToNumbers = function () {
 	return this.lines().map( Number );
+}
+
+String.prototype.extractNumbers = function () {
+	return ( this.match( /-?\d+/g ) ?? [] ).map( Number );
 }
 
 const IteratorPrototype = Object.getPrototypeOf( Object.getPrototypeOf( [][ Symbol.iterator ]() ) );
