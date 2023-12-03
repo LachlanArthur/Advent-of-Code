@@ -10,7 +10,7 @@ function part1( input: string ) {
 		.lines()
 		.map( line => {
 			const n = line.replace( /\D/g, '' ).split( '' ).map( Number );
-			return n.at( 0 ) * 10 + n.at( -1 );
+			return n.at( 0 )! * 10 + n.at( -1 )!;
 		} )
 		.sum()
 }
