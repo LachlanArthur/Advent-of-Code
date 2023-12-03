@@ -7,34 +7,37 @@ import example from './example.ts';
 import input from './input.ts';
 
 function part1( input: string ) {
+	input = input.trim() + '\n';
+
+	if ( input.includes( '\r\n' ) ) {
+		throw new Error( 'Input cannot be CRLF' );
+	}
+
+	const width = input.indexOf( '\n' ) + 1;
+	const special = /[!@#$%^&*\-\=_+]/;
+
 	let total = 0;
 
-	const grid = input.lines().map( line => line.split( '' ) );
-	for ( const [ y, row ] of grid.entries() ) {
-		let firstX: number | undefined;
-		let allFirstX: number[] = [];
-		for ( const [ x, char ] of row.entries() ) {
-			if ( /\d/.test( char ) ) {
-				if ( firstX === undefined ) {
-					firstX = x;
-				}
+	for ( const result of input.matchAll( /\d+/gd ) ) {
+		const [ start, end ] = result.indices![ 0 ];
 
-				if ( Array.from( pointsAroundSquare( x, y, 1 ) ).some( ( [ x, y ] ) => {
-					const surround = grid[ y ]?.[ x ];
-					if ( typeof surround === 'undefined' ) return false;
-					if ( surround === '.' ) return false;
-					if ( isNaN( Number( surround ) ) ) return true; // I don't know what all the symbols are
-					return false;
-				} ) ) {
-					allFirstX.push( firstX );
-				}
-			} else {
-				firstX = undefined;
-			}
-		}
+		const xMin = ( start % width ) === 0
+			? start
+			: start - 1;
 
-		for ( const firstX of allFirstX.unique() ) {
-			total += Number( row.slice( firstX ).join( '' ).match( /\d+/ )![ 0 ] );
+		const xMax = ( start % width ) === width
+			? end
+			: end + 1;
+
+		if (
+			// Left and Right
+			special.test( input.slice( xMin, xMax ) ) ||
+			// Above
+			special.test( input.slice( xMin - width, xMax - width ) ) ||
+			// Below
+			special.test( input.slice( xMin + width, xMax + width ) )
+		) {
+			total += Number( result[ 0 ] );
 		}
 	}
 
@@ -85,6 +88,6 @@ function part2( input: string ) {
 	return total;
 }
 
-bench( 'part 2 example', () => part2( example ), 467835 );
+// bench( 'part 2 example', () => part2( example ), 467835 );
 
-bench( 'part 2 input', () => part2( input ) );
+// bench( 'part 2 input', () => part2( input ) );
