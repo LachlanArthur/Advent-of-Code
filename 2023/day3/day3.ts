@@ -1,5 +1,5 @@
 import { } from '../../extensions.ts';
-import { bench } from '../../bench.ts';
+import { bench100 } from '../../bench.ts';
 import { pointsAroundSquare } from '../../grid.ts';
 import { tuple, Tuple } from '../../structures.ts';
 
@@ -14,28 +14,24 @@ function part1( input: string ) {
 	}
 
 	const width = input.indexOf( '\n' ) + 1;
-	const special = /[!@#$%^&*\-\=_+]/;
+	const lastRow = input.length - width;
+	const special = /[^\d\n.]/;
 
 	let total = 0;
 
 	for ( const result of input.matchAll( /\d+/gd ) ) {
 		const [ start, end ] = result.indices![ 0 ];
 
-		const xMin = ( start % width ) === 0
-			? start
-			: start - 1;
-
-		const xMax = ( start % width ) === width
-			? end
-			: end + 1;
+		const min = start - +( ( start % width ) !== 0 );
+		const max = end + +( ( start % width ) !== width );
 
 		if (
 			// Left and Right
-			special.test( input.slice( xMin, xMax ) ) ||
+			special.test( input.slice( min, max ) ) ||
 			// Above
-			special.test( input.slice( xMin - width, xMax - width ) ) ||
+			( start > width && special.test( input.slice( min - width, max - width ) ) ) ||
 			// Below
-			special.test( input.slice( xMin + width, xMax + width ) )
+			( start < lastRow && special.test( input.slice( min + width, max + width ) ) )
 		) {
 			total += Number( result[ 0 ] );
 		}
@@ -44,9 +40,9 @@ function part1( input: string ) {
 	return total;
 }
 
-bench( 'part 1 example', () => part1( example ), 4361 );
+bench100( 'part 1 example', () => part1( example ), 4361 );
 
-bench( 'part 1 input', () => part1( input ) );
+bench100( 'part 1 input', () => part1( input ) );
 
 function part2( input: string ) {
 	let total = 0;
@@ -88,6 +84,6 @@ function part2( input: string ) {
 	return total;
 }
 
-// bench( 'part 2 example', () => part2( example ), 467835 );
+bench100( 'part 2 example', () => part2( example ), 467835 );
 
-// bench( 'part 2 input', () => part2( input ) );
+bench100( 'part 2 input', () => part2( input ) );
