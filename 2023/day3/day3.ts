@@ -1,17 +1,11 @@
 import { } from '../../extensions.ts';
 import { bench100 } from '../../bench.ts';
-import { pointsAroundSquare } from '../../grid.ts';
-import { tuple, Tuple } from '../../structures.ts';
 
 import example from './example.ts';
 import input from './input.ts';
 
 function part1( input: string ) {
 	input = input.trim() + '\n';
-
-	if ( input.includes( '\r\n' ) ) {
-		throw new Error( 'Input cannot be CRLF' );
-	}
 
 	const width = input.indexOf( '\n' ) + 1;
 	const lastRow = input.length - width;
@@ -45,43 +39,50 @@ bench100( 'part 1 example', () => part1( example ), 4361 );
 bench100( 'part 1 input', () => part1( input ) );
 
 function part2( input: string ) {
+	input = input.trim() + '\n';
+
+	const width = input.indexOf( '\n' ) + 1;
+	const lastRow = input.length - width;
+
 	let total = 0;
 
-	const gears = new Map<Tuple, Tuple[]>();
+	for ( const result of input.matchAll( /\*/gd ) ) {
+		const [ start, end ] = result.indices![ 0 ];
 
-	const grid = input.lines().map( line => line.split( '' ) );
-	for ( const [ y, row ] of grid.entries() ) {
-		let firstX: number | undefined;
-		for ( const [ x, char ] of row.entries() ) {
-			if ( /\d/.test( char ) ) {
-				if ( firstX === undefined ) {
-					firstX = x;
-				}
+		const min = Math.max( ( ( start / width ) << 0 ) * width, start - 3 );
+		const max = Math.min( ( ( start / width ) << 0 ) * width + width - 1, end + 3 );
 
-				for ( const [ surroundX, surroundY ] of pointsAroundSquare( x, y, 1 ) ) {
-					const surround = grid[ surroundY ]?.[ surroundX ];
-					if ( surround !== '*' ) continue;
+		const gears: number[] = [
+			// Left and right
+			...findNumbers( input.slice( min, max ), start - min ),
+		];
 
-					gears.push( tuple( surroundX, surroundY ), tuple( firstX, y ) );
-				}
-			} else {
-				firstX = undefined;
-			}
+		// Above
+		if ( start > width ) {
+			gears.push( ...findNumbers( input.slice( min - width, max - width ), ( start - width ) - ( min - width ) ) );
 		}
-	}
 
-	for ( const numberCoords of gears.values() ) {
-		const uniqueCoords = numberCoords.unique();
-		if ( uniqueCoords.length === 2 ) {
-			let gearRatio = 1;
-			for ( const [ nX, nY ] of uniqueCoords ) {
-				gearRatio *= Number( grid[ nY ].slice( nX ).join( '' ).match( /\d+/ )![ 0 ] );
-			}
-			total += gearRatio;
+		// Below
+		if ( start < lastRow ) {
+			gears.push( ...findNumbers( input.slice( min + width, max + width ), ( start + width ) - ( min + width ) ) );
+		}
+
+		if ( gears.length === 2 ) {
+			total += gears[ 0 ] * gears[ 1 ];
 		}
 	}
 
 	return total;
+
+	function* findNumbers( string: string, position: number ): Generator<number, void, undefined> {
+		for ( const result of string.matchAll( /\d+/gd ) ) {
+			const [ start, end ] = result.indices![ 0 ];
+
+			if ( ( start - 1 ) <= position && position <= end ) {
+				yield Number( result[ 0 ] );
+			}
+		}
+	}
 }
 
 bench100( 'part 2 example', () => part2( example ), 467835 );
