@@ -39,16 +39,7 @@ export function bench100<T>( name: string, func: () => T, expected?: T ) {
 
 	const enableConsole = disableConsole();
 	const start = performance.now();
-	func(); func(); func(); func(); func(); func(); func(); func(); func(); func();
-	func(); func(); func(); func(); func(); func(); func(); func(); func(); func();
-	func(); func(); func(); func(); func(); func(); func(); func(); func(); func();
-	func(); func(); func(); func(); func(); func(); func(); func(); func(); func();
-	func(); func(); func(); func(); func(); func(); func(); func(); func(); func();
-	func(); func(); func(); func(); func(); func(); func(); func(); func(); func();
-	func(); func(); func(); func(); func(); func(); func(); func(); func(); func();
-	func(); func(); func(); func(); func(); func(); func(); func(); func(); func();
-	func(); func(); func(); func(); func(); func(); func(); func(); func(); func();
-	func(); func(); func(); func(); func(); func(); func(); func(); func(); func();
+	for ( let i = 0; i < 100; i++ ) func();
 	const end = performance.now();
 	enableConsole();
 
@@ -133,3 +124,11 @@ function disableConsole(): () => void {
 		globalThis.console.warn = warn;
 	}
 }
+
+// function renderDuration( milliseconds: number ): string {
+
+
+// 	if ( milliseconds < 1 ) {
+// 		return `${(milliseconds/1000).toFixed(2)}µs`;
+// 	}
+// }
