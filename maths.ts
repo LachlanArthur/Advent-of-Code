@@ -49,3 +49,41 @@ export function triangleNumber( n: number ): number {
 
 	return output;
 }
+
+export function gcd( ...numbers: number[] ): number {
+	if ( numbers.length < 2 ) {
+		throw new RangeError( 'At least two arguments are required' );
+	}
+
+	if ( numbers.length === 2 ) {
+		let [ a, b ] = numbers;
+
+		if ( a < b ) {
+			return gcd( b, a );
+		}
+
+		while ( a % b !== 0 ) {
+			const temp = b;
+			b = a % b;
+			a = temp;
+		}
+
+		return b;
+	}
+
+	return numbers.reduce( ( a, b ) => gcd( a, b ) );
+}
+
+export function lcm( ...numbers: number[] ): number {
+	if ( numbers.length < 2 ) {
+		throw new RangeError( 'At least two arguments are required' );
+	}
+
+	if ( numbers.length === 2 ) {
+		let [ a, b ] = numbers;
+
+		return Math.abs( b ) / gcd( a, b ) * Math.abs( a );
+	}
+
+	return numbers.reduce( ( a, b ) => lcm( a, b ) );
+}
