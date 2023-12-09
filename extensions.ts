@@ -29,6 +29,7 @@ declare global {
 		 */
 		partitionBy( sizes: number[], leftovers?: boolean ): T[][];
 		transpose<T>( this: T[][] ): T[][];
+		sum( this: bigint[] ): bigint;
 		sum( this: number[] ): number;
 		product( this: number[] ): number;
 		mean( this: number[] ): number;
@@ -331,14 +332,14 @@ Array.prototype.transpose = function () {
 	return output as any;
 }
 
-Array.prototype.sum = function ( this: number[] ) {
-	let sum = 0;
+Array.prototype.sum = function ( this: number[] | bigint[] ) {
+	let sum = typeof this[ 0 ] === 'bigint' ? 0n : 0;
 
 	for ( const item of this ) {
-		sum += item;
+		sum += item as any;
 	}
 
-	return sum;
+	return sum as any;
 }
 
 Array.prototype.product = function ( this: number[] ) {

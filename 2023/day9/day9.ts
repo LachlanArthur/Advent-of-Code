@@ -1,5 +1,6 @@
 import { } from '../../extensions.ts';
 import { bench } from '../../bench.ts';
+import { Polynomial } from '../../maths.ts';
 
 import example from './example.ts';
 import input from './input.ts';
@@ -8,26 +9,14 @@ function part1( input: string ) {
 	return input
 		.lines()
 		.map( line => {
-			const seqs: number[][] = [ line.match( /-?\d+/g )!.map( Number ) ];
-
-			while ( !seqs.last()!.every( n => n === 0 ) ) {
-				seqs.push( seqs.last()!.sliding( 2 ).map( ( [ a, b ] ) => b - a ) );
-			}
-
-			seqs.reverse();
-			seqs.first()!.push( 0 );
-
-			for ( let i = 1; i < seqs.length; i++ ) {
-				const prevSeq = seqs[ i - 1 ];
-				seqs[ i ].push( seqs[ i ].last()! + prevSeq.last()! );
-			}
-
-			return seqs.last()!.last()!;
+			const sequence = line.match( /-?\d+/g )!.map( Number );
+			const formula = Polynomial.fromSequence( sequence );
+			return formula.calc( BigInt( sequence.length + 1 ) );
 		} )
 		.sum()
 }
 
-bench( 'part 1 example', () => part1( example ), undefined );
+bench( 'part 1 example', () => part1( example ), 114n );
 
 bench( 'part 1 input', () => part1( input ) );
 
@@ -35,25 +24,13 @@ function part2( input: string ) {
 	return input
 		.lines()
 		.map( line => {
-			const seqs: number[][] = [ line.match( /-?\d+/g )!.map( Number ).reverse() ];
-
-			while ( !seqs.last()!.every( n => n === 0 ) ) {
-				seqs.push( seqs.last()!.sliding( 2 ).map( ( [ a, b ] ) => b - a ) );
-			}
-
-			seqs.reverse();
-			seqs.first()!.push( 0 );
-
-			for ( let i = 1; i < seqs.length; i++ ) {
-				const prevSeq = seqs[ i - 1 ];
-				seqs[ i ].push( seqs[ i ].last()! + prevSeq.last()! );
-			}
-
-			return seqs.last()!.last()!;
+			const sequence = line.match( /-?\d+/g )!.map( Number );
+			const formula = Polynomial.fromSequence( sequence );
+			return formula.calc( 0n );
 		} )
 		.sum()
 }
 
-bench( 'part 2 example', () => part2( example ), undefined );
+bench( 'part 2 example', () => part2( example ), 2n );
 
 bench( 'part 2 input', () => part2( input ) );
