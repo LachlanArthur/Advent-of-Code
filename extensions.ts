@@ -72,6 +72,7 @@ declare global {
 		minBy<T>( this: T[], callback: ( item: T ) => number ): T | undefined;
 		aggregateColumns<T, O>( this: T[][], aggregator: ( values: T[] ) => O ): O[];
 		crossJoin<T, O>( this: T[], other: O[] ): [ T, O ][];
+		intersect( this: T[], other: T[] ): T[];
 	}
 
 	interface ArrayConstructor {
@@ -498,7 +499,9 @@ Array.prototype.combinationsLazy = function* <T>( this: T[], size: number, uniqu
 		const combinations = rest.combinationsLazy( size - 1, false );
 
 		for ( const combination of combinations ) {
-			yield [ item, ...combination ];
+			if ( combination.length === size - 1 ) {
+				yield [ item, ...combination ];
+			}
 		}
 	}
 }
@@ -529,7 +532,9 @@ Array.prototype.permutationsLazy = function* <T>( this: T[], size: number, uniqu
 		const combinations = rest.permutationsLazy( size - 1, false );
 
 		for ( const combination of combinations ) {
-			yield [ item, ...combination ];
+			if ( combination.length === size - 1 ) {
+				yield [ item, ...combination ];
+			}
 		}
 	}
 }
@@ -592,6 +597,10 @@ Array.prototype.crossJoin = function <T, O>( this: T[], other: O[] ): [ T, O ][]
 	}
 
 	return output;
+}
+
+Array.prototype.intersect = function <T>( this: T[], other: T[] ): T[] {
+	return this.filter( x => other.includes( x ) );
 }
 
 Array.fromLines = function ( lines: string ) {
