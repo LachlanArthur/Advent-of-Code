@@ -62,55 +62,61 @@ export function pascalTriangleRow( row: number ): number[] {
 	return output;
 }
 
-export type Fraction = [ number, number ];
+export type Fraction<T extends number | bigint> = [ T, T ];
 
-export function simplifyFraction( [ numerator, denominator ]: Fraction ): Fraction {
-	const divisor = gcd( [ numerator, denominator ] );
-	return [ numerator / divisor, denominator / divisor ];
+export function simplifyFraction( [ numerator, denominator ]: Fraction<number> ): Fraction<number>;
+export function simplifyFraction( [ numerator, denominator ]: Fraction<bigint> ): Fraction<bigint>;
+export function simplifyFraction( [ numerator, denominator ]: Fraction<number | bigint> ): Fraction<number | bigint> {
+	const divisor = gcd( [ numerator, denominator ] as any );
+	return [ numerator as any / divisor as any, denominator as any / divisor as any ];
 }
 
-export function addFractions( fractions: Fraction[] ) {
+export function addFractions( fractions: Fraction<number>[] ): Fraction<number>
+export function addFractions( fractions: Fraction<bigint>[] ): Fraction<bigint>
+export function addFractions( fractions: Fraction<number | bigint>[] ): Fraction<number | bigint> {
 	if ( fractions.length === 0 ) {
 		throw new RangeError( 'At least one fraction is required' );
 	}
 
-	let total: Fraction = fractions.pop()!;
+	let total = fractions.pop()!;
 
 	while ( fractions.length ) {
 		const [ n1, d1 ] = total;
 		const [ n2, d2 ] = fractions.pop()!;
 
 		total = simplifyFraction( [
-			n1 * d2 + n2 * d1,
-			d1 * d2,
+			( n1 as any ) * ( d2 as any ) + ( n2 as any ) * ( d1 as any ),
+			( d1 as any ) * ( d2 as any ),
 		] );
 	}
 
 	return total;
 }
 
-export function sharedDenominators( fractions: Fraction[] ): Fraction[] {
-	const denominator = lcm( fractions.pluck( '1' ) );
+export function sharedDenominators( fractions: Fraction<number>[] ): Fraction<number>[]
+export function sharedDenominators( fractions: Fraction<bigint>[] ): Fraction<bigint>[]
+export function sharedDenominators( fractions: Fraction<number | bigint>[] ): Fraction<number | bigint>[] {
+	const denominator = lcm( fractions.pluck( '1' ) as any );
 
-	return fractions.map( ( [ n, d ] ) => [ n * ( denominator / d ), denominator ] );
+	return fractions.map( ( [ n, d ]: any[] ) => [ n * ( denominator / d ), denominator ] );
 }
 
-const stirlingNumbersFirstKindCache = new Map<number, number[]>( [
-	[ 0, [ 1 ] ],
-	[ 1, [ 0, 1 ] ],
+const stirlingNumbersFirstKindCache = new Map<bigint, bigint[]>( [
+	[ 0n, [ 1n ] ],
+	[ 1n, [ 0n, 1n ] ],
 ] );
 
 /**
  * @see https://en.wikipedia.org/wiki/Stirling_numbers_of_the_first_kind
  */
-export function stirlingNumbersFirstKind( row: number ): number[] {
+export function stirlingNumbersFirstKind( row: bigint ): bigint[] {
 	if ( !stirlingNumbersFirstKindCache.has( row ) ) {
-		const previousRow = row - 1;
-		const numbers: number[] = [ 0 ];
+		const previousRow = row - 1n;
+		const numbers: bigint[] = [ 0n ];
 		const previousNumbers = stirlingNumbersFirstKind( previousRow );
 
 		for ( let i = 1; i <= row; i++ ) {
-			numbers.push( -previousRow * ( previousNumbers[ i ] ?? 0 ) + ( previousNumbers[ i - 1 ] ?? 0 ) );
+			numbers.push( -previousRow * ( previousNumbers[ i ] ?? 0n ) + ( previousNumbers[ i - 1 ] ?? 0n ) );
 		}
 
 		stirlingNumbersFirstKindCache.set( row, numbers );
@@ -119,36 +125,50 @@ export function stirlingNumbersFirstKind( row: number ): number[] {
 	return stirlingNumbersFirstKindCache.get( row )!;
 }
 
-export function gcd( numbers: number[] ): number {
-	if ( numbers.length < 2 ) {
-		throw new RangeError( 'At least two arguments are required' );
+export function abs( n: number ): number;
+export function abs( n: bigint ): bigint;
+export function abs( n: number | bigint ): number | bigint {
+	if ( typeof n === 'bigint' ) {
+		return n < 0n ? -n : n;
+	} else {
+		return Math.abs( n );
 	}
-
-	if ( numbers.length === 2 ) {
-		let [ a, b ] = numbers;
-		a = Math.abs( a );
-		b = Math.abs( b );
-
-		return a ? gcd( [ b % a, a ] ) : b;
-	}
-
-	return numbers.reduce( ( a, b ) => gcd( [ a, b ] ) );
 }
 
-export function lcm( numbers: number[] ): number {
+export function gcd( numbers: number[] ): number;
+export function gcd( numbers: bigint[] ): bigint;
+export function gcd( numbers: number[] | bigint[] ): number | bigint {
 	if ( numbers.length < 2 ) {
 		throw new RangeError( 'At least two arguments are required' );
 	}
 
 	if ( numbers.length === 2 ) {
 		let [ a, b ] = numbers;
-		a = Math.abs( a );
-		b = Math.abs( b );
+		a = abs( a as any );
+		b = abs( b as any );
 
-		return b / gcd( [ a, b ] ) * a;
+		return ( a ? gcd( [ b % a, a ] ) : b );
 	}
 
-	return numbers.reduce( ( a, b ) => lcm( [ a, b ] ) );
+	return numbers.reduce( ( a, b ) => gcd( [ a, b ] as any ) );
+}
+
+export function lcm( numbers: number[] ): number;
+export function lcm( numbers: bigint[] ): bigint;
+export function lcm( numbers: number[] | bigint[] ): number | bigint {
+	if ( numbers.length < 2 ) {
+		throw new RangeError( 'At least two arguments are required' );
+	}
+
+	if ( numbers.length === 2 ) {
+		let [ a, b ] = numbers;
+		a = abs( a as any );
+		b = abs( b as any );
+
+		return ( b / gcd( [ a, b ] as any ) * a );
+	}
+
+	return numbers.reduce( ( a, b ) => lcm( [ a, b ] as any ) );
 }
 
 export function* range( from: number, to: number ) {
@@ -177,7 +197,7 @@ export class Polynomial {
 	/**
 	 * The coefficients are stored in reverse order, so their index matches the exponent of their term
 	 */
-	public readonly coefficients: number[];
+	public readonly coefficients: bigint[];
 
 	/**
 	 * The highest exponent in the polynomial
@@ -191,8 +211,8 @@ export class Polynomial {
 	 */
 	public degree: number;
 
-	constructor( coefficients: number[], public readonly divisor: number = 1 ) {
-		while ( coefficients[ 0 ] === 0 ) {
+	constructor( coefficients: bigint[], public readonly divisor: bigint = 1n ) {
+		while ( coefficients[ 0 ] === 0n ) {
 			// Remove redundant leading zeroes
 			coefficients.shift();
 		}
@@ -208,18 +228,27 @@ export class Polynomial {
 	 *
 	 * @see https://en.wikipedia.org/wiki/Newton_polynomial
 	 */
-	static fromSequence( yValues: number[] ): Polynomial;
-	static fromSequence( xyValues: [ number, number ][] ): Polynomial;
-	static fromSequence( values: number[] | [ number, number ][] ): Polynomial {
+	static fromSequence( yValues: number[] | bigint[] ): Polynomial;
+	static fromSequence( xyValues: [ number, number ][] | [ bigint, bigint ][] ): Polynomial;
+	static fromSequence( values: number[] | bigint[] | [ number, number ][] | [ bigint, bigint ][] ): Polynomial {
 		if ( values.length === 0 ) {
 			throw new Error( 'No values were provided' );
 		}
 
-		const pairs: [ number, number ][] = [];
-		const uniqueX = new Set<number>();
+		const pairs: [ bigint, bigint ][] = [];
+		const uniqueX = new Set<bigint>();
 
 		for ( const [ i, value ] of values.entries() ) {
-			const [ x, y ] = typeof value === 'number' ? [ i + 1, value ] : value;
+			let x: bigint;
+			let y: bigint;
+
+			if ( Array.isArray( value ) ) {
+				x = BigInt( value[ 0 ] );
+				y = BigInt( value[ 1 ] );
+			} else {
+				x = BigInt( i + 1 );
+				y = BigInt( value );
+			}
 
 			if ( uniqueX.has( x ) ) {
 				throw new Error( 'Sequence has duplicate x values' );
@@ -229,11 +258,10 @@ export class Polynomial {
 			uniqueX.add( x );
 		}
 
-		type Fraction = [ number, number ];
-		type Diff = { xMin: number, xMax: number, value: Fraction };
-		const diffs: Diff[][] = [ pairs.map( ( [ x, y ] ) => ( { xMin: x, xMax: x, value: [ y, 1 ] } ) ) ];
+		type Diff = { xMin: bigint, xMax: bigint, value: Fraction<bigint> };
+		const diffs: Diff[][] = [ pairs.map( ( [ x, y ] ) => ( { xMin: x, xMax: x, value: [ y, 1n ] } ) ) ];
 
-		while ( diffs.at( -1 )!.length > 1 && !diffs.at( -1 )!.every( diff => diff.value[ 0 ] === 0 ) ) {
+		while ( diffs.at( -1 )!.length > 1 && !diffs.at( -1 )!.every( diff => diff.value[ 0 ] === 0n ) ) {
 			const previous = diffs.at( -1 )!;
 			const next: Diff[] = [];
 
@@ -244,12 +272,12 @@ export class Polynomial {
 				let denominator = denominator1 * denominator2 * xMax - denominator1 * denominator2 * xMin;
 
 				// Remove the negative from the denominator
-				if ( Math.sign( denominator ) === -1 ) {
+				if ( denominator < 0n ) {
 					numerator = -numerator;
 					denominator = -denominator;
 				}
 
-				const value: Fraction = simplifyFraction( [ numerator, denominator ] );
+				const value = simplifyFraction( [ numerator, denominator ] );
 				next.push( { xMin, xMax, value } );
 			}
 
@@ -258,11 +286,11 @@ export class Polynomial {
 
 		// Remove trailing zero coefficients
 		const diffValues = diffs.map( ( [ { value } ] ) => value );
-		while ( diffValues.at( -1 )![ 0 ] === 0 ) {
+		while ( diffValues.at( -1 )![ 0 ] === 0n ) {
 			diffValues.pop();
 		}
 
-		const coefficients: Fraction[] = [];
+		const coefficients: Fraction<bigint>[] = [];
 
 		for ( const [ i, frac ] of diffValues.entries() ) {
 			coefficients[ i ] = frac;
@@ -271,7 +299,7 @@ export class Polynomial {
 				continue;
 			}
 
-			const stirlings = stirlingNumbersFirstKind( i + 1 ).toReversed();
+			const stirlings = stirlingNumbersFirstKind( BigInt( i ) + 1n ).toReversed();
 
 			for ( let n = 1; n <= i; n++ ) {
 				coefficients[ i - n ] = addFractions( [
@@ -286,8 +314,8 @@ export class Polynomial {
 		return new Polynomial( sharedCoefficients.pluck( '0' ).toReversed(), sharedCoefficients[ 0 ][ 1 ] );
 	}
 
-	calc( x: number ): number {
-		return this.coefficients.reduce( ( total, coefficient, index ) => coefficient * x ** index + total, 0 ) / this.divisor;
+	calc( x: bigint ): bigint {
+		return this.coefficients.reduce( ( total, coefficient, index ) => coefficient * x ** BigInt( index ) + total, 0n ) / this.divisor;
 	}
 
 	formula(): string {
@@ -295,7 +323,7 @@ export class Polynomial {
 			.entriesArray()
 			.toReversed()
 			.map( ( [ i, n ] ) => {
-				if ( n === 0 ) {
+				if ( n === 0n ) {
 					return '';
 				}
 				if ( i === 0 ) {
@@ -309,7 +337,7 @@ export class Polynomial {
 			.filter( String )
 			.join( ' + ' )
 
-		if ( this.divisor === 1 ) {
+		if ( this.divisor === 1n ) {
 			return coefficients;
 		}
 
