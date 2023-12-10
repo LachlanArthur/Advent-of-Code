@@ -96,7 +96,7 @@ export class AStarGrid<T extends any, V extends GridVertex<T>> extends AStar<V> 
 	 * Render the given path to the console
 	 */
 	display( path: V[] ) {
-		renderBrailleGrid( Array.filledFromCoordinates( path.map( vertex => [ vertex.x, vertex.y ] ), () => true, false ) as boolean[][] );
+		renderBrailleGrid( Array.filledFromCoordinates( path.map( vertex => [ vertex.x, vertex.y ] ), () => true, () => false ) as boolean[][] );
 	}
 
 	/**
