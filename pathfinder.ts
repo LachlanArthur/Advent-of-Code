@@ -78,6 +78,8 @@ export abstract class AStar<V extends Vertex> implements Pathfinder<V> {
 	}
 }
 
+export type Direction = 'up' | 'down' | 'left' | 'right';
+
 export class AStarGrid<T extends any, V extends GridVertex<T>> extends AStar<V> {
 	constructor( public vertices: V[] ) {
 		super();
@@ -107,7 +109,7 @@ export class AStarGrid<T extends any, V extends GridVertex<T>> extends AStar<V> 
 	static fromGrid<T, V extends GridVertex<T>>(
 		grid: Grid<T, Cell<T>>,
 		createVertex?: ( cell: Cell<T> ) => V,
-		getEdgeValue?: ( source: V, destination: V ) => number | null,
+		getEdgeValue?: ( source: V, destination: V, direction: Direction ) => number | null,
 	): AStarGrid<T, V> {
 		const cells = grid.flatCells();
 		const vertices: V[] = [];
@@ -115,15 +117,17 @@ export class AStarGrid<T extends any, V extends GridVertex<T>> extends AStar<V> 
 		createVertex ??= cell => new GridVertex<T>( cell.x, cell.y, cell.value ) as V;
 		getEdgeValue ??= () => 1;
 
+		const directions: Direction[] = [ 'up', 'down', 'left', 'right' ];
+
 		for ( const sourceCell of cells ) {
 			const source = ( vertices[ sourceCell.index ] ??= createVertex( sourceCell ) );
 
-			for ( const direction of [ 'up', 'down', 'left', 'right' ] ) {
-				const destinationCell = sourceCell[ direction as 'up' | 'down' | 'left' | 'right' ];
+			for ( const direction of directions ) {
+				const destinationCell = sourceCell[ direction ];
 
 				if ( destinationCell ) {
 					const destination = ( vertices[ destinationCell.index ] ??= createVertex( destinationCell ) );
-					const value = getEdgeValue( source, destination );
+					const value = getEdgeValue( source, destination, direction );
 
 					if ( value !== null ) {
 						source.edges.set( destination, value );

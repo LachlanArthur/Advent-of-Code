@@ -96,6 +96,10 @@ export class Grid<T, C extends Cell<T>> {
 		return this;
 	}
 
+	findCell( predicate: ( cell: C ) => boolean ): C | undefined {
+		return this.flatCells().find( predicate );
+	}
+
 	toArray(): C[][] {
 		return this.cells.valuesArray().map( row => row.valuesArray() );
 	}
