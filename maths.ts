@@ -314,8 +314,11 @@ export class Polynomial {
 		return new Polynomial( sharedCoefficients.pluck( '0' ).toReversed(), sharedCoefficients[ 0 ][ 1 ] );
 	}
 
-	calc( x: bigint ): bigint {
-		return this.coefficients.reduce( ( total, coefficient, index ) => coefficient * x ** BigInt( index ) + total, 0n ) / this.divisor;
+	calc( x: bigint ): Fraction<bigint> {
+		return simplifyFraction( [
+			this.coefficients.reduce( ( total, coefficient, index ) => coefficient * x ** BigInt( index ) + total, 0n ),
+			this.divisor,
+		] );
 	}
 
 	formula(): string {
