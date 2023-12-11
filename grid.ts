@@ -16,7 +16,17 @@ export function normaliseCoords( coords: [ number, number ][] ): [ number, numbe
 	return coords.map( ( [ x, y ] ) => [ x - minX, y - minY ] );
 }
 
-export function manhattan( ax: number, ay: number, bx: number, by: number ): number {
+export const manhattan = manhattanFlat;
+
+export function manhattanPair( pair: [ [ number, number ], [ number, number ] ] ): number {
+	return Math.abs( pair[ 0 ][ 0 ] - pair[ 1 ][ 0 ] ) + Math.abs( pair[ 0 ][ 1 ] - pair[ 1 ][ 1 ] );
+}
+
+export function manhattanPoints( a: [ number, number ], b: [ number, number ] ): number {
+	return Math.abs( a[ 0 ] - b[ 0 ] ) + Math.abs( a[ 1 ] - b[ 1 ] );
+}
+
+export function manhattanFlat( ax: number, ay: number, bx: number, by: number ): number {
 	return Math.abs( ax - bx ) + Math.abs( ay - by );
 }
 
