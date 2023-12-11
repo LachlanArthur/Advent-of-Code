@@ -3,32 +3,24 @@ import { bench } from '../../bench.ts';
 
 import example from './example.ts';
 import input from './input.ts';
-import { manhattan } from '../../grid.ts';
+import { CharGrid, manhattan, manhattanPair } from '../../grid.ts';
 
 type Point = [ number, number ];
 
 function part1( input: string, multiplier: number ) {
-	const grid = input.linesAndChars();
+	const grid = new CharGrid( input );
 
-	const emptyRows = grid.flatMap( ( row, y ) => row.every( c => c === '.' ) ? [ y ] : [] );
-	const emptyCols = grid.transpose().flatMap( ( col, x ) => col.every( c => c === '.' ) ? [ x ] : [] );
+	const emptyRows = grid.rows().flatMap( ( row, y ) => row.every( c => c === '.' ) ? [ y ] : [] );
+	const emptyCols = grid.cols().flatMap( ( col, x ) => col.every( c => c === '.' ) ? [ x ] : [] );
 
-	const points: Point[] = [];
-
-	for ( const [ y, row ] of grid.entries() ) {
-		for ( const [ x, c ] of row.entries() ) {
-			if ( c === '#' ) {
-				points.push( [
-					x + emptyCols.filter( col => col < x ).length * ( multiplier - 1 ),
-					y + emptyRows.filter( row => row < y ).length * ( multiplier - 1 ),
-				] );
-			}
-		}
-	}
-
-	return points
+	return grid
+		.find( '#' )
+		.map<Point>( ( [ x, y ] ) => [
+			x + emptyCols.filter( col => col < x ).length * ( multiplier - 1 ),
+			y + emptyRows.filter( row => row < y ).length * ( multiplier - 1 ),
+		] )
 		.combinations( 2 )
-		.map( ( [ [ ax, ay ], [ bx, by ] ] ) => manhattan( ax, ay, bx, by ) )
+		.map( manhattanPair )
 		.sum();
 }
 
