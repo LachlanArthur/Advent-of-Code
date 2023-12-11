@@ -245,3 +245,61 @@ export function* generateCoordinates( minX: number, minY: number, maxX: number, 
 export function cellIndexFromCoordinates( x: number, y: number, minX: number, minY: number, maxX: number, maxY: number ): number {
 	return ( y - minY ) * ( maxX - minX + 1 ) + ( x - minX );
 }
+
+type CharGridCell = [ number, number, string ];
+
+export class CharGrid {
+	grid: string[][];
+	readonly height: number;
+	readonly width: number
+
+	constructor( input: string ) {
+		this.grid = input.trim().linesAndChars();
+		this.width = this.grid[ 0 ].length;
+		this.height = this.grid.length;
+	}
+
+	find( char: string ): CharGridCell[] {
+		return this.filter( c => c === char );
+	}
+
+	filter( predicate: ( char: string, x: number, y: number ) => boolean ): CharGridCell[] {
+		return this.flatMap(
+			( char, x, y ) => predicate( char, x, y )
+				? [ [ x, y, char ] ]
+				: []
+		)
+	}
+
+	flatMap<U>( callback: ( char: string, x: number, y: number ) => U | ReadonlyArray<U> ): U[] {
+		return this.grid
+			.flatMap( ( row, y ) => row
+				.flatMap( ( char, x ) => callback( char, x, y ) )
+			);
+	}
+
+	get( x: number, y: number ): string | undefined {
+		return this.grid[ y ]?.[ x ];
+	}
+
+	set( x: number, y: number, char: string ) {
+		this.grid[ y ] ??= [];
+		this.grid[ y ][ x ] = char;
+	}
+
+	rows() {
+		return this.grid;
+	}
+
+	cols() {
+		return this.grid.transpose();
+	}
+
+	row( y: number ): string[] {
+		return this.grid[ y ];
+	}
+
+	col( x: number ): string[] {
+		return this.grid.pluck( x );
+	}
+}
