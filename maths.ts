@@ -172,6 +172,9 @@ export function lcm( numbers: number[] | bigint[] ): number | bigint {
 }
 
 export function* range( from: number, to: number ) {
+	from <<= 0;
+	to <<= 0;
+
 	const direction = Math.sign( to - from );
 
 	yield from;
@@ -181,8 +184,7 @@ export function* range( from: number, to: number ) {
 	}
 
 	do {
-		from += direction;
-		yield from;
+		yield from += direction;
 	} while ( from !== to );
 }
 
