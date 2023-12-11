@@ -1,5 +1,8 @@
 type KeysWithValuesOfType<T, V> = keyof { [ P in keyof T as T[ P ] extends V ? P : never ]: P } & keyof T;
 
+type TupleType<T, N extends number> = N extends N ? number extends N ? T[] : _TupleOf<T, N, []> : never;
+type _TupleOf<T, N extends number, R extends unknown[]> = R[ 'length' ] extends N ? R : _TupleOf<T, N, [ T, ...R ]>;
+
 declare global {
 	interface Array<T> {
 		log( message?: string ): this;
@@ -59,10 +62,10 @@ declare global {
 		without<T>( this: T[], ...values: T[] ): T[];
 		clone<T>( this: T[] ): T[];
 		looping<T>( this: T[] ): Generator<T, never, undefined>;
-		combinations<T>( this: T[], size: number, unique?: boolean ): T[][];
-		combinationsLazy<T>( this: T[], size: number, unique?: boolean ): Generator<T[], void, undefined>;
-		permutations<T>( this: T[], size: number, unique?: boolean ): T[][];
-		permutationsLazy<T>( this: T[], size: number, unique?: boolean ): Generator<T[], void, undefined>;
+		combinations<T, N extends number>( this: T[], size: N, unique?: boolean ): TupleType<T, N>[];
+		combinationsLazy<T, N extends number>( this: T[], size: N, unique?: boolean ): Generator<TupleType<T, N>, void, undefined>;
+		permutations<T, N extends number>( this: T[], size: N, unique?: boolean ): TupleType<T, N>[];
+		permutationsLazy<T, N extends number>( this: T[], size: N, unique?: boolean ): Generator<TupleType<T, N>, void, undefined>;
 		countUnique<T>( this: T[] ): Map<T, number>;
 		countUnique<T, K extends keyof T>( this: T[], property: K ): Map<K, number>;
 		first<T>( this: T[] ): T | undefined;
@@ -474,22 +477,22 @@ Array.prototype.looping = function* <T>( this: T[] ) {
 	}
 }
 
-Array.prototype.combinations = function <T>( this: T[], size: number, unique = true ): T[][] {
+Array.prototype.combinations = function <T, N extends number>( this: T[], size: N, unique = true ): TupleType<T, N>[] {
 	return Array.from( this.combinationsLazy( size, unique ) );
 }
 
-Array.prototype.combinationsLazy = function* <T>( this: T[], size: number, unique = true ): Generator<T[], void, undefined> {
+Array.prototype.combinationsLazy = function* <T, N extends number>( this: T[], size: N, unique = true ): Generator<TupleType<T, N>, void, undefined> {
 	if ( this.length === 0 ) return;
 
 	const items = unique ? this.unique() : this;
 	if ( items.length === 1 ) {
-		yield [ items[ 0 ] ];
+		yield [ items[ 0 ] ] as TupleType<T, N>;
 		return;
 	}
 
 	if ( size === 1 ) {
 		for ( const item of items ) {
-			yield [ item ];
+			yield [ item ] as TupleType<T, N>;
 		}
 		return;
 	}
@@ -501,28 +504,28 @@ Array.prototype.combinationsLazy = function* <T>( this: T[], size: number, uniqu
 
 		for ( const combination of combinations ) {
 			if ( combination.length === size - 1 ) {
-				yield [ item, ...combination ];
+				yield [ item, ...combination ] as TupleType<T, N>;
 			}
 		}
 	}
 }
 
-Array.prototype.permutations = function <T>( this: T[], size: number, unique = true ): T[][] {
+Array.prototype.permutations = function <T, N extends number>( this: T[], size: N, unique?: boolean ): TupleType<T, N>[] {
 	return Array.from( this.permutationsLazy( size, unique ) );
 }
 
-Array.prototype.permutationsLazy = function* <T>( this: T[], size: number, unique = true ): Generator<T[], void, undefined> {
+Array.prototype.permutationsLazy = function*<T, N extends number>( this: T[], size: N, unique?: boolean ): Generator<TupleType<T, N>, void, undefined> {
 	if ( this.length === 0 ) return;
 
 	const items = unique ? this.unique() : this;
 	if ( items.length === 1 ) {
-		yield [ items[ 0 ] ];
+		yield [ items[ 0 ] ] as TupleType<T, N>;
 		return;
 	}
 
 	if ( size === 1 ) {
 		for ( const item of items ) {
-			yield [ item ];
+			yield [ item ] as TupleType<T, N>;
 		}
 		return;
 	}
@@ -534,7 +537,7 @@ Array.prototype.permutationsLazy = function* <T>( this: T[], size: number, uniqu
 
 		for ( const combination of combinations ) {
 			if ( combination.length === size - 1 ) {
-				yield [ item, ...combination ];
+				yield [ item, ...combination ] as TupleType<T, N>;
 			}
 		}
 	}
