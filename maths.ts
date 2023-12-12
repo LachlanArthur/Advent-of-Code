@@ -40,14 +40,32 @@ export function combinations<T>( values: T[], size: number ): T[][] {
 	return output;
 }
 
-export function triangleNumber( n: number ): number {
-	let output = 0;
-
-	for ( let i = 0; i < n; i++ ) {
-		output += i;
+export function factorial( n: number ): number {
+	let result = 1;
+	for ( let i = 1; i <= n; i++ ) {
+		result *= i;
 	}
+	return result;
+}
 
-	return output;
+export function figurateNumber( size: number, n: number ): number {
+	let result = n;
+	for ( let i = 1; i < size; i++ ) {
+		result *= n + i;
+	}
+	return result / factorial( size );
+}
+
+export function triangleNumber( n: number ): number {
+	return figurateNumber( 2, n );
+}
+
+export function tetrahedralNumber( n: number ): number {
+	return figurateNumber( 3, n );
+}
+
+export function pentatopeNumber( n: number ): number {
+	return figurateNumber( 4, n );
 }
 
 export function pascalTriangleRow( row: number ): number[] {
