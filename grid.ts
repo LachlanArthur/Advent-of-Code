@@ -253,7 +253,7 @@ export class CharGrid {
 	readonly height: number;
 	readonly width: number
 
-	constructor( input: string ) {
+	constructor( public input: string ) {
 		this.grid = input.trim().linesAndChars();
 		this.width = this.grid[ 0 ].length;
 		this.height = this.grid.length;
