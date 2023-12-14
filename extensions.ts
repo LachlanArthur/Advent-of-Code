@@ -470,7 +470,7 @@ Array.prototype.without = function <T>( this: T[], ...values: T[] ) {
 }
 
 Array.prototype.clone = function <T>( this: T[] ) {
-	return [ ...this ];
+	return this.map<T>( x => Array.isArray( x ) ? x.clone() as T : x );
 }
 
 Array.prototype.looping = function* <T>( this: T[] ) {
@@ -614,7 +614,7 @@ Array.fromLines = function ( lines: string ) {
 }
 
 Array.fromChars = function ( input: string ) {
-	return collect( input.split( '' ) );
+	return [ ...input ];
 }
 
 Array.fromRange = function ( start: number, end: number, step = 1 ) {
@@ -823,7 +823,7 @@ String.prototype.lines = function ( this: string ) {
 }
 
 String.prototype.chars = function ( this: string ) {
-	return this.split( '' );
+	return [ ...this ];
 }
 
 String.prototype.linesAndChars = function ( this: string ) {
