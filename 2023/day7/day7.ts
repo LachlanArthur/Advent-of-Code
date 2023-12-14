@@ -1,5 +1,5 @@
 const { firstBy } = ( await import( 'npm:thenby' ) ).default;
-import { } from '../../extensions.ts';
+import '../../extensions.ts';
 import { bench } from '../../bench.ts';
 
 import example from './example.ts';

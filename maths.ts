@@ -1,3 +1,41 @@
+// Can handle huge arrays
+export function max( values: number[] ) {
+	let length = values.length;
+	let max = -Infinity;
+
+	while ( length-- ) {
+		if ( values[ length ] > max ) max = values[ length ];
+	}
+
+	return max;
+}
+
+// Can handle huge arrays
+export function min( values: number[] ) {
+	let length = values.length;
+	let min = Infinity;
+
+	while ( length-- ) {
+		if ( values[ length ] < min ) min = values[ length ];
+	}
+
+	return min;
+}
+
+// Can handle huge arrays
+export function minMax( values: number[] ): [ number, number ] {
+	let length = values.length;
+	let min = Infinity;
+	let max = -Infinity;
+
+	while ( length-- ) {
+		if ( values[ length ] < min ) min = values[ length ];
+		if ( values[ length ] > max ) max = values[ length ];
+	}
+
+	return [ min, max ];
+}
+
 export function permutations<T>( values: T[], size: number ): T[][] {
 	if ( values.length > 36 ) throw new RangeError( 'Too many items' );
 

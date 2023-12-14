@@ -1,4 +1,4 @@
-import { } from '../../extensions.ts';
+import '../../extensions.ts';
 import { bench, bench100 } from '../../bench.ts';
 import { lcm } from '../../maths.ts';
 

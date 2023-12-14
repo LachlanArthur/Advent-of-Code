@@ -1,3 +1,5 @@
+import { max, min, minMax } from "./maths.ts";
+
 type KeysWithValuesOfType<T, V> = keyof { [ P in keyof T as T[ P ] extends V ? P : never ]: P } & keyof T;
 
 type TupleType<T, N extends number> = N extends N ? number extends N ? T[] : _TupleOf<T, N, []> : never;
@@ -946,52 +948,4 @@ IteratorPrototype.find = function <T>( this: IterableIterator<T>, predicate: ( i
 			return item;
 		}
 	}
-}
-
-export function collect<T>( input: Array<T> ): Array<T>;
-export function collect<T>( ...input: Array<T> ): Array<T>;
-export function collect<T>( ...args: any ): Array<T> {
-	if ( args.length === 1 && Array.isArray( args[ 0 ] ) ) {
-		return new Array<T>( ...args[ 0 ] );
-	} else {
-		return new Array<T>( ...args );
-	}
-}
-
-// Can handle huge arrays
-export function max( values: number[] ) {
-	let length = values.length;
-	let max = -Infinity;
-
-	while ( length-- ) {
-		if ( values[ length ] > max ) max = values[ length ];
-	}
-
-	return max;
-}
-
-// Can handle huge arrays
-export function min( values: number[] ) {
-	let length = values.length;
-	let min = Infinity;
-
-	while ( length-- ) {
-		if ( values[ length ] < min ) min = values[ length ];
-	}
-
-	return min;
-}
-
-// Can handle huge arrays
-export function minMax( values: number[] ): [ number, number ] {
-	let length = values.length;
-	let min = Infinity;
-	let max = -Infinity;
-
-	while ( length-- ) {
-		if ( values[ length ] < min ) min = values[ length ];
-		if ( values[ length ] > max ) max = values[ length ];
-	}
-
-	return [ min, max ];
 }

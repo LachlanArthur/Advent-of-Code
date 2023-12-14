@@ -1,4 +1,4 @@
-import { } from '../../extensions.ts';
+import '../../extensions.ts';
 import { bench } from '../../bench.ts';
 import { Grid } from '../../grid.ts';
 

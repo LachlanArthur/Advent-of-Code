@@ -1,4 +1,4 @@
-import { } from '../../extensions.ts';
+import '../../extensions.ts';
 import { bench } from '../../bench.ts';
 import { CharGrid } from '../../grid.ts';
 import { Direction } from '../../pathfinder.ts';

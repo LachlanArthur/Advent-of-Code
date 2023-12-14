@@ -1,4 +1,4 @@
-import { } from '../../extensions.ts';
+import '../../extensions.ts';
 import { bench100 } from '../../bench.ts';
 
 import example from './example.ts';
