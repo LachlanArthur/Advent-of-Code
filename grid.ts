@@ -259,6 +259,10 @@ export class CharGrid {
 		this.height = this.grid.length;
 	}
 
+	static flatten( grid: string[][] ): string {
+		return grid.map( row => row.join( '' ) ).join( '\n' );
+	}
+
 	find( char: string ): CharGridCell[] {
 		return this.filter( c => c === char );
 	}
@@ -307,7 +311,27 @@ export class CharGrid {
 		return CharGrid.flatten( this.grid );
 	}
 
-	static flatten( grid: string[][] ): string {
-		return grid.map( row => row.join( '' ) ).join( '\n' );
+	transpose() {
+		return new CharGrid( this.grid.transpose() );
+	}
+
+	flipX() {
+		return new CharGrid( this.grid.map( row => row.toReversed() ) );
+	}
+
+	flipY() {
+		return new CharGrid( this.grid.clone().toReversed() )
+	}
+
+	rotateClockwise() {
+		return this.transpose().flipX();
+	}
+
+	rotateAnticlockwise() {
+		return this.transpose().flipY();
+	}
+
+	rotate180() {
+		return this.flipX().flipY();
 	}
 }
