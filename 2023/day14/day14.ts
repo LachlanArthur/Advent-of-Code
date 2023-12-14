@@ -2,6 +2,7 @@ import '../../extensions.ts';
 import { bench } from '../../bench.ts';
 import { CharGrid } from '../../grid.ts';
 import { Direction } from '../../pathfinder.ts';
+import { cycleSkipper } from '../../loops.ts';
 
 import example from './example.ts';
 import input from './input.ts';
@@ -69,34 +70,22 @@ bench( 'part 1 example', () => part1( example ), 136 );
 bench( 'part 1 input', () => part1( input ) );
 
 function part2( input: string ) {
-	let grid = input.linesAndChars();
-	const directions: Direction[] = [ 'up', 'left', 'down', 'right' ];
+	const end = cycleSkipper( {
+		start: input.linesAndChars(),
+		transition: grid => {
+			grid = slide( grid, 'up' );
+			grid = slide( grid, 'left' );
+			grid = slide( grid, 'down' );
+			grid = slide( grid, 'right' );
+			return grid;
+		},
+		iterations: 1_000_000_000,
+		identity: grid => CharGrid.flatten( grid ),
+	} );
 
-	const cache = new Map<string, number>();
+	const grid = new CharGrid( end );
 
-	const spinCycles = 1_000_000_000;
-
-	for ( let i = 0; i < spinCycles; i++ ) {
-		const cacheKey = CharGrid.flatten( grid );
-		if ( cache.has( cacheKey ) ) {
-			const loopStart = cache.get( cacheKey )!;
-			const loopSize = i - loopStart;
-			const remainingLoops = Math.floor( ( spinCycles - i ) / loopSize );
-			i += ( remainingLoops * loopSize );
-
-			cache.clear();
-		}
-
-		cache.set( cacheKey, i );
-
-		for ( const direction of directions ) {
-			grid = slide( grid, direction );
-		}
-	}
-
-	const grid_ = new CharGrid( CharGrid.flatten( grid ) );
-
-	return grid_.find( 'O' ).map( ( [ , y ] ) => grid_.height - y ).sum();
+	return grid.find( 'O' ).map( ( [ , y ] ) => grid.height - y ).sum();
 }
 
 bench( 'part 2 example', () => part2( example ), 64 );
