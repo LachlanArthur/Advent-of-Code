@@ -250,11 +250,15 @@ type CharGridCell = [ number, number, string ];
 
 export class CharGrid {
 	grid: string[][];
-	readonly height: number;
-	readonly width: number
+	height: number;
+	width: number;
 
-	constructor( public input: string ) {
-		this.grid = input.trim().linesAndChars();
+	constructor( input: string | string[][] ) {
+		if ( typeof input === 'string' ) {
+			this.grid = input.trim().linesAndChars();
+		} else {
+			this.grid = input;
+		}
 		this.width = this.grid[ 0 ].length;
 		this.height = this.grid.length;
 	}
