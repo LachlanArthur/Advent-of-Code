@@ -7,38 +7,27 @@ import { cycleSkipper } from '../../loops.ts';
 import example from './example.ts';
 import input from './input.ts';
 
-function slide( grid: string[][], direction: Direction ) {
-	const width = grid[ 0 ].length;
-	const height = grid.length;
-
+function slide( grid: CharGrid, direction: Direction ) {
 	switch ( direction ) {
 		case 'up':
-			for ( let x = 0; x < width; x++ ) {
-				for ( const [ y, char ] of slideLeft( grid.pluck( x ) ).entries() ) {
-					grid[ y ][ x ] = char;
-				}
-			}
-			break;
 		case 'down':
-			for ( let x = 0; x < width; x++ ) {
-				for ( const [ y, char ] of slideLeft( grid.pluck( x ).toReversed() ).toReversed().entries() ) {
-					grid[ y ][ x ] = char;
+			return grid.mapCols( col => {
+				if ( direction === 'up' ) {
+					return slideLeft( col );
+				} else {
+					return slideLeft( col.toReversed() ).toReversed();
 				}
-			}
-			break;
+			} )
 		case 'left':
-			for ( let y = 0; y < height; y++ ) {
-				grid[ y ] = slideLeft( grid[ y ] );
-			}
-			break;
 		case 'right':
-			for ( let y = 0; y < height; y++ ) {
-				grid[ y ] = slideLeft( grid[ y ].toReversed() ).toReversed();
-			}
-			break;
+			return grid.mapRows( row => {
+				if ( direction === 'left' ) {
+					return slideLeft( row );
+				} else {
+					return slideLeft( row.toReversed() ).toReversed();
+				}
+			} );
 	}
-
-	return grid;
 }
 
 function slideLeft( chars: string[] ): string[] {
@@ -57,12 +46,11 @@ function slideLeft( chars: string[] ): string[] {
 }
 
 function part1( input: string ) {
-	let grid = input.linesAndChars();
+	let grid = new CharGrid( input );
 
 	grid = slide( grid, 'up' );
 
-	const grid_ = new CharGrid( CharGrid.flatten( grid ) );
-	return grid_.find( 'O' ).map( ( { y } ) => grid_.height - y ).sum();
+	return grid.find( 'O' ).map( ( { y } ) => grid.height - y ).sum();
 }
 
 bench( 'part 1 example', () => part1( example ), 136 );
@@ -70,8 +58,8 @@ bench( 'part 1 example', () => part1( example ), 136 );
 bench( 'part 1 input', () => part1( input ) );
 
 function part2( input: string ) {
-	const end = cycleSkipper( {
-		start: input.linesAndChars(),
+	const grid = cycleSkipper( {
+		start: new CharGrid( input ),
 		transition: grid => {
 			grid = slide( grid, 'up' );
 			grid = slide( grid, 'left' );
@@ -80,10 +68,8 @@ function part2( input: string ) {
 			return grid;
 		},
 		iterations: 1_000_000_000,
-		identity: grid => CharGrid.flatten( grid ),
+		identity: grid => grid.toString(),
 	} );
-
-	const grid = new CharGrid( end );
 
 	return grid.find( 'O' ).map( ( { y } ) => grid.height - y ).sum();
 }

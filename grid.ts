@@ -311,6 +311,14 @@ export class CharGrid {
 		);
 	}
 
+	mapRows( callback: ( row: string[], y: number ) => string[] ): CharGrid {
+		return new CharGrid( this.getRows().map( callback ) );
+	}
+
+	mapCols( callback: ( col: string[], x: number ) => string[] ): CharGrid {
+		return new CharGrid( this.getCols().map( callback ).transpose() );
+	}
+
 	get( x: number, y: number ): string | undefined {
 		return this.grid[ y ]?.[ x ];
 	}
