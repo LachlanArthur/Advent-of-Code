@@ -284,10 +284,31 @@ export class CharGrid {
 	}
 
 	flatMap<U>( callback: ( char: string, x: number, y: number ) => U | ReadonlyArray<U> ): U[] {
-		return this.grid
-			.flatMap( ( row, y ) => row
-				.flatMap( ( char, x ) => callback( char, x, y ) )
-			);
+		return this.grid.flatMap(
+			( row, y ) => row.flatMap(
+				( char, x ) => callback( char, x, y )
+			)
+		);
+	}
+
+	map( callback: ( char: string, x: number, y: number ) => string ): CharGrid {
+		return new CharGrid(
+			this.grid.map(
+				( row, y ) => row.map(
+					( char, x ) => callback( char, x, y )
+				)
+			)
+		);
+	}
+
+	reduce<T>( callback: ( acc: T, char: string, x: number, y: number ) => T, initial: T ): T {
+		return this.grid.reduce(
+			( acc, row, y ) => row.reduce(
+				( acc, char, x ) => callback( acc, char, x, y ),
+				acc
+			),
+			initial
+		);
 	}
 
 	get( x: number, y: number ): string | undefined {
@@ -299,20 +320,30 @@ export class CharGrid {
 		this.grid[ y ][ x ] = char;
 	}
 
-	rows() {
+	getRows() {
 		return this.grid;
 	}
 
-	cols() {
+	getCols() {
 		return this.grid.transpose();
 	}
 
-	row( y: number ): string[] {
-		return this.grid[ y ];
+	getRow( y: number ): string[] {
+		return [ ...this.grid[ y ] ];
 	}
 
-	col( x: number ): string[] {
+	getCol( x: number ): string[] {
 		return this.grid.pluck( x );
+	}
+
+	setRow( y: number, row: string[] ) {
+		this.grid[ y ] = [ ...row ];
+	}
+
+	setCol( x: number, col: string[] ) {
+		for ( let y = 0; y < this.height; y++ ) {
+			this.grid[ y ][ x ] = col[ y ];
+		}
 	}
 
 	toString() {
@@ -341,5 +372,22 @@ export class CharGrid {
 
 	rotate180() {
 		return this.flipX().flipY();
+	}
+
+	charCount() {
+		return this.grid.flat().countUnique();
+	}
+
+	subgrid( x1: number, y1: number, x2: number, y2: number ): CharGrid {
+		if ( x1 > x2 ) [ x1, x2 ] = [ x2, x1 ];
+		if ( y1 > y2 ) [ y1, y2 ] = [ y2, y1 ];
+
+		return new CharGrid(
+			this.grid.slice( y1, y2 + 1 ).map( row => row.slice( x1, x2 + 1 ) )
+		)
+	}
+
+	replaceChar( oldChar: string, newChar: string ): CharGrid {
+		return this.map( char => char === oldChar ? newChar : char );
 	}
 }

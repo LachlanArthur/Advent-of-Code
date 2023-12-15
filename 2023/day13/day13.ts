@@ -23,8 +23,8 @@ function part1( input: string ) {
 		searchX: for ( let x = 1; x < grid.width; x += 1 ) {
 
 			for ( let distance = 1; distance <= Math.min( x, grid.width - x ); distance++ ) {
-				const left = grid.col( x - distance );
-				const right = grid.col( x + ( distance - 1 ) );
+				const left = grid.getCol( x - distance );
+				const right = grid.getCol( x + ( distance - 1 ) );
 
 				if ( left.join( '' ) !== right.join( '' ) ) {
 					continue searchX;
@@ -37,8 +37,8 @@ function part1( input: string ) {
 
 		searchY: for ( let y = 1; y < grid.height; y += 1 ) {
 			for ( let distance = 1; distance <= Math.min( y, grid.height - y ); distance++ ) {
-				const above = grid.row( y - distance );
-				const below = grid.row( y + ( distance - 1 ) );
+				const above = grid.getRow( y - distance );
+				const below = grid.getRow( y + ( distance - 1 ) );
 
 				if ( above.join( '' ) !== below.join( '' ) ) {
 					continue searchY;
@@ -71,8 +71,8 @@ function part2( input: string ) {
 			let diffs = 0;
 
 			for ( let distance = 1; distance <= Math.min( x, grid.width - x ); distance++ ) {
-				const left = grid.col( x - distance );
-				const right = grid.col( x + ( distance - 1 ) );
+				const left = grid.getCol( x - distance );
+				const right = grid.getCol( x + ( distance - 1 ) );
 
 				diffs += stringDiff( left.join( '' ), right.join( '' ) );
 			}
@@ -87,8 +87,8 @@ function part2( input: string ) {
 			let diffs = 0;
 
 			for ( let distance = 1; distance <= Math.min( y, grid.height - y ); distance++ ) {
-				const above = grid.row( y - distance );
-				const below = grid.row( y + ( distance - 1 ) );
+				const above = grid.getRow( y - distance );
+				const below = grid.getRow( y + ( distance - 1 ) );
 
 				diffs += stringDiff( above.join( '' ), below.join( '' ) );
 			}

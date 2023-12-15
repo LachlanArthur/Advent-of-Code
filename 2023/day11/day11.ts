@@ -10,8 +10,8 @@ type Point = [ number, number ];
 function part1( input: string, multiplier: number ) {
 	const grid = new CharGrid( input );
 
-	const emptyRows = grid.rows().flatMap( ( row, y ) => row.every( c => c === '.' ) ? [ y ] : [] );
-	const emptyCols = grid.cols().flatMap( ( col, x ) => col.every( c => c === '.' ) ? [ x ] : [] );
+	const emptyRows = grid.getRows().flatMap( ( row, y ) => row.every( c => c === '.' ) ? [ y ] : [] );
+	const emptyCols = grid.getCols().flatMap( ( col, x ) => col.every( c => c === '.' ) ? [ x ] : [] );
 
 	return grid
 		.find( '#' )
