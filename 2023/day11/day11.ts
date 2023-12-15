@@ -15,7 +15,7 @@ function part1( input: string, multiplier: number ) {
 
 	return grid
 		.find( '#' )
-		.map<Point>( ( [ x, y ] ) => [
+		.map<Point>( ( { x, y } ) => [
 			x + emptyCols.filter( col => col < x ).length * ( multiplier - 1 ),
 			y + emptyRows.filter( row => row < y ).length * ( multiplier - 1 ),
 		] )

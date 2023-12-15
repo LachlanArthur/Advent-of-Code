@@ -246,7 +246,11 @@ export function cellIndexFromCoordinates( x: number, y: number, minX: number, mi
 	return ( y - minY ) * ( maxX - minX + 1 ) + ( x - minX );
 }
 
-type CharGridCell = [ number, number, string ];
+type CharGridCell = {
+	x: number,
+	y: number,
+	char: string,
+};
 
 export class CharGrid {
 	grid: string[][];
@@ -274,7 +278,7 @@ export class CharGrid {
 	filter( predicate: ( char: string, x: number, y: number ) => boolean ): CharGridCell[] {
 		return this.flatMap(
 			( char, x, y ) => predicate( char, x, y )
-				? [ [ x, y, char ] ]
+				? [ { x, y, char } ]
 				: []
 		)
 	}

@@ -62,7 +62,7 @@ function part1( input: string ) {
 	grid = slide( grid, 'up' );
 
 	const grid_ = new CharGrid( CharGrid.flatten( grid ) );
-	return grid_.find( 'O' ).map( ( [ , y ] ) => grid_.height - y ).sum();
+	return grid_.find( 'O' ).map( ( { y } ) => grid_.height - y ).sum();
 }
 
 bench( 'part 1 example', () => part1( example ), 136 );
@@ -85,7 +85,7 @@ function part2( input: string ) {
 
 	const grid = new CharGrid( end );
 
-	return grid.find( 'O' ).map( ( [ , y ] ) => grid.height - y ).sum();
+	return grid.find( 'O' ).map( ( { y } ) => grid.height - y ).sum();
 }
 
 bench( 'part 2 example', () => part2( example ), 64 );
