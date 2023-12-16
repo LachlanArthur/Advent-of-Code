@@ -18,8 +18,48 @@ type Beam = {
 	d: Direction,
 }
 
+type GridChar = '.' | '|' | '-' | '\\' | '/';
+
+const beamUp = ( { x, y }: Beam ): Beam => ( { x, y: y - 1, d: Direction.up } );
+const beamDown = ( { x, y }: Beam ): Beam => ( { x, y: y + 1, d: Direction.down } );
+const beamLeft = ( { x, y }: Beam ): Beam => ( { x: x - 1, y, d: Direction.left } );
+const beamRight = ( { x, y }: Beam ): Beam => ( { x: x + 1, y, d: Direction.right } );
+
+const directionMap: Record<GridChar, Record<Direction, ( beam: Beam ) => Beam[]>> = {
+	'.': {
+		[ Direction.up ]: beam => [ beamUp( beam ) ],
+		[ Direction.down ]: beam => [ beamDown( beam ) ],
+		[ Direction.left ]: beam => [ beamLeft( beam ) ],
+		[ Direction.right ]: beam => [ beamRight( beam ) ],
+	},
+	'|': {
+		[ Direction.up ]: beam => [ beamUp( beam ) ],
+		[ Direction.down ]: beam => [ beamDown( beam ) ],
+		[ Direction.left ]: beam => [ beamUp( beam ), beamDown( beam ) ],
+		[ Direction.right ]: beam => [ beamUp( beam ), beamDown( beam ) ],
+	},
+	'-': {
+		[ Direction.up ]: beam => [ beamLeft( beam ), beamRight( beam ) ],
+		[ Direction.down ]: beam => [ beamLeft( beam ), beamRight( beam ) ],
+		[ Direction.left ]: beam => [ beamLeft( beam ) ],
+		[ Direction.right ]: beam => [ beamRight( beam ) ],
+	},
+	'\\': {
+		[ Direction.up ]: beam => [ beamLeft( beam ) ],
+		[ Direction.down ]: beam => [ beamRight( beam ) ],
+		[ Direction.left ]: beam => [ beamUp( beam ) ],
+		[ Direction.right ]: beam => [ beamDown( beam ) ],
+	},
+	'/': {
+		[ Direction.up ]: beam => [ beamRight( beam ) ],
+		[ Direction.down ]: beam => [ beamLeft( beam ) ],
+		[ Direction.left ]: beam => [ beamDown( beam ) ],
+		[ Direction.right ]: beam => [ beamUp( beam ) ],
+	},
+}
+
 function part1( input: string, start: Beam ) {
-	const grid = new CharGrid( input );
+	const grid = new CharGrid<GridChar>( input );
 
 	let beams: Beam[] = [ start ];
 
@@ -33,62 +73,14 @@ function part1( input: string, start: Beam ) {
 		}
 
 		beams = beams
-			.flatMap<Beam>( ( { x, y, d } ) => {
-				const gridChar = grid.get( x, y );
-
-				switch ( gridChar ) {
-					default:
-						throw new Error( `Unknown grid char ${gridChar}` );
-
-					case '.':
-						switch ( d ) {
-							case Direction.up: return [ { x, y: y - 1, d } ];
-							case Direction.down: return [ { x, y: y + 1, d } ];
-							case Direction.left: return [ { x: x - 1, y, d } ];
-							case Direction.right: return [ { x: x + 1, y, d } ];
-						}
-
-					case '|':
-						switch ( d ) {
-							case Direction.up: return [ { x, y: y - 1, d } ];
-							case Direction.down: return [ { x, y: y + 1, d } ];
-							case Direction.left:
-							case Direction.right: return [
-								{ x, y: y - 1, d: Direction.up },
-								{ x, y: y + 1, d: Direction.down },
-							];
-						}
-
-					case '-':
-						switch ( d ) {
-							case Direction.up:
-							case Direction.down: return [
-								{ x: x - 1, y, d: Direction.left },
-								{ x: x + 1, y, d: Direction.right },
-							];
-							case Direction.left: return [ { x: x - 1, y, d } ];
-							case Direction.right: return [ { x: x + 1, y, d } ];
-						}
-
-					case '\\':
-						switch ( d ) {
-							case Direction.up: return [ { x: x - 1, y, d: Direction.left } ];
-							case Direction.down: return [ { x: x + 1, y, d: Direction.right } ];
-							case Direction.left: return [ { x, y: y - 1, d: Direction.up } ];
-							case Direction.right: return [ { x, y: y + 1, d: Direction.down } ];
-						}
-
-					case '/':
-						switch ( d ) {
-							case Direction.up: return [ { x: x + 1, y, d: Direction.right } ];
-							case Direction.down: return [ { x: x - 1, y, d: Direction.left } ];
-							case Direction.left: return [ { x, y: y + 1, d: Direction.down } ];
-							case Direction.right: return [ { x, y: y - 1, d: Direction.up } ];
-						}
-				}
-
-			} )
-			.filter( ( { x, y, d } ) => x >= 0 && y >= 0 && x < grid.width && y < grid.height && !seen.has( `${x},${y},${d}` ) )
+			.flatMap<Beam>( beam =>
+				directionMap[ grid.get( beam.x, beam.y )! ][ beam.d ]( beam )
+			)
+			.filter( ( { x, y, d } ) =>
+				x >= 0 && x < grid.width &&
+				y >= 0 && y < grid.height &&
+				!seen.has( `${x},${y},${d}` )
+			)
 	}
 
 	return energised.size;
