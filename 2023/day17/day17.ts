@@ -137,6 +137,7 @@ function findPath( input: string, minStraight: number, maxStraight: number ) {
 	const end = vertexMap.get( `${grid.width - 1},${grid.height - 1},${Direction.up}` )![ 0 ];
 
 	const path = pathfinder.path( start, end );
+	// const path = pathfinder.pathAnimation( start, end, 'animation', grid.width, grid.height, v => [ v.x, v.y ] );
 
 	if ( path.length === 0 ) {
 		throw new Error( 'Failed to find path' );

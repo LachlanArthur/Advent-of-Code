@@ -1,7 +1,12 @@
+import * as fs from "https://deno.land/std@0.209.0/fs/mod.ts";
+import * as path from "https://deno.land/std@0.209.0/path/mod.ts";
+import { createCanvas } from "https://deno.land/x/canvas@v1.4.1/mod.ts";
 import { BinaryHeap } from "https://deno.land/std@0.209.0/data_structures/binary_heap.ts";
-import { renderBrailleGrid } from "./debug.ts";
+
 import "./extensions.ts";
-import { Cell, Grid } from "./grid.ts";
+import { renderBrailleGrid } from "./debug.ts";
+import { Cell, Grid, manhattanFlat } from "./grid.ts";
+import { inferno } from "./colourmaps.ts";
 
 export interface Vertex {
 	edges: Map<Vertex, number>;
@@ -28,7 +33,7 @@ export interface Pathfinder<V extends Vertex> {
 export abstract class AStar<V extends Vertex> implements Pathfinder<V> {
 	protected abstract heuristic( a: V, b: V ): number;
 
-	protected reconstructPath = ( cameFrom: Map<V, V>, current: V ): V[] => {
+	protected reconstructPath( cameFrom: Map<V, V>, current: V ): V[] {
 		const path: V[] = [ current ];
 
 		while ( current = cameFrom.get( current )! ) {
@@ -38,7 +43,7 @@ export abstract class AStar<V extends Vertex> implements Pathfinder<V> {
 		return path;
 	}
 
-	path( start: V, end: V ): V[] {
+	*pathSteps( start: V, end: V ) {
 		const openSet = new BinaryHeap<V>( ( a, b ) => fScore.get( a )! - fScore.get( b )! );
 		const cameFrom = new Map<V, V>();
 		const gScore = new Map<V, number>();
@@ -48,8 +53,16 @@ export abstract class AStar<V extends Vertex> implements Pathfinder<V> {
 		gScore.set( start, 0 );
 		fScore.set( start, this.heuristic( start, end ) );
 
-		while ( openSet.length > 0 ) {
+		while ( !openSet.isEmpty() ) {
 			const current = openSet.pop()!;
+
+			yield {
+				current,
+				openSet: openSet.toArray(),
+				cameFrom,
+				gScore,
+				fScore,
+			};
 
 			const currentGScore = gScore.get( current )!;
 
@@ -73,6 +86,96 @@ export abstract class AStar<V extends Vertex> implements Pathfinder<V> {
 		}
 
 		return [];
+	}
+
+	path( start: V, end: V ): V[] {
+		const steps = this.pathSteps( start, end );
+		let result;
+		while ( !( result = steps.next() ).done ) { }
+		return result.value;
+	}
+
+	pathAnimation(
+		start: V,
+		end: V,
+		folder: string,
+		width: number,
+		height: number,
+		getXY: ( v: V ) => [ number, number ],
+	): V[] {
+		const folderPath = path.resolve( folder );
+		const canvas = createCanvas( width, height );
+		const ctx = canvas.getContext( '2d' );
+
+		let frameNumber = 1;
+		const previousFrames: [ number, number ][][] = [];
+		// Keep two seconds worth of points
+		const fadeFrames = 60;
+		const drawFrame = ( newPoints: [ number, number ][] ) => {
+			ctx.save();
+
+			ctx.fillStyle = 'black';
+			ctx.fillRect( 0, 0, width, height );
+
+			previousFrames.unshift( newPoints );
+			if ( previousFrames.length > fadeFrames ) {
+				previousFrames.pop();
+			}
+
+			for ( const [ index, points ] of previousFrames.entriesArray().reverse() ) {
+				const strength = ( fadeFrames - index ) / fadeFrames;
+				ctx.fillStyle = inferno( strength );
+				for ( const [ x, y ] of points ) {
+					ctx.fillRect( x, y, 1, 1 );
+				}
+			}
+
+			Deno.writeFileSync( `${folderPath}/image-${frameNumber.toString().padStart( 10, '0' )}.png`, canvas.toBuffer() );
+			frameNumber++;
+
+			ctx.restore();
+		}
+
+		fs.emptyDirSync( folderPath );
+
+		const frameFrequency = 1000;
+		const steps = this.pathSteps( start, end );
+		let iteration = 1;
+		let result;
+		while ( !( result = steps.next() ).done ) {
+			const { current, openSet, cameFrom } = result.value;
+
+			if ( iteration % frameFrequency === 0 ) {
+				drawFrame( openSet.map( getXY ) );
+			}
+
+			iteration++;
+		}
+
+		// show the final path for two seconds, then fade out for two seconds
+		for ( let i = 0; i < 60; i++ ) {
+			drawFrame( result.value.map( getXY ) );
+		}
+		for ( let i = 0; i < 60; i++ ) {
+			drawFrame( [] );
+		}
+
+		const ffmpegCommand = new Deno.Command( 'ffmpeg', {
+			args: [
+				'-y',
+				'-framerate', '30',
+				'-pattern_type', 'sequence',
+				'-i', `${folderPath}/image-%10d.png`,
+				'-vf', "scale=w='max(1000,iw)':h='max(1000,ih)':flags=neighbor:force_original_aspect_ratio=increase:force_divisible_by=2",
+				'-c:v', 'libx265',
+				'-pix_fmt', 'p010le',
+				`${folderPath}.mp4`,
+			],
+		} );
+
+		ffmpegCommand.spawn().ref();
+
+		return result.value;
 	}
 }
 
@@ -138,6 +241,7 @@ export class AStarGrid<T extends any, V extends GridVertex<T>> extends AStar<V> 
 	}
 }
 
+// TODO: use binary heap
 export function dijkstra<T extends Vertex>( all: T[], start: T, end: T ): T[] {
 	const dist = new Map<T, number>( all.map( ( v ) => [ v, Infinity ] ) );
 	const prev = new Map<T, T>();
