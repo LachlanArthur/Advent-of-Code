@@ -1,3 +1,4 @@
+import { BinaryHeap } from "https://deno.land/std@0.209.0/data_structures/binary_heap.ts";
 import { renderBrailleGrid } from "./debug.ts";
 import "./extensions.ts";
 import { Cell, Grid } from "./grid.ts";
@@ -38,26 +39,23 @@ export abstract class AStar<V extends Vertex> implements Pathfinder<V> {
 	}
 
 	path( start: V, end: V ): V[] {
-		const openSet = new Set<V>( [ start ] );
+		const openSet = new BinaryHeap<V>( ( a, b ) => fScore.get( a )! - fScore.get( b )! );
 		const cameFrom = new Map<V, V>();
 		const gScore = new Map<V, number>();
 		const fScore = new Map<V, number>();
 
+		openSet.push( start );
 		gScore.set( start, 0 );
 		fScore.set( start, this.heuristic( start, end ) );
 
-		while ( openSet.size > 0 ) {
-			const current = openSet.valuesArray()
-				.sort( ( a, b ) => fScore.get( a )! - fScore.get( b )! )
-				.shift()!;
+		while ( openSet.length > 0 ) {
+			const current = openSet.pop()!;
 
 			const currentGScore = gScore.get( current )!;
 
 			if ( current.is( end ) ) {
 				return this.reconstructPath( cameFrom, current );
 			}
-
-			openSet.delete( current );
 
 			for ( const [ edgeVertex, edgeWeight ] of current.edges as Map<V, number> ) {
 				if ( !edgeVertex.traversible ) continue;
@@ -69,7 +67,7 @@ export abstract class AStar<V extends Vertex> implements Pathfinder<V> {
 					cameFrom.set( edgeVertex, current );
 					gScore.set( edgeVertex, tentativeGScore );
 					fScore.set( edgeVertex, tentativeGScore + this.heuristic( edgeVertex, end ) );
-					openSet.add( edgeVertex );
+					openSet.push( edgeVertex );
 				}
 			}
 		}
