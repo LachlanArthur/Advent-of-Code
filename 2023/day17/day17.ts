@@ -1,7 +1,7 @@
 import '../../extensions.ts';
 import { bench } from '../../bench.ts';
 import { Grid } from '../../grid.ts';
-import { AStar, Vertex } from '../../pathfinder.ts';
+import { AStarManhattan, Vertex2d } from '../../pathfinder.ts';
 import { renderBrailleGrid } from '../../debug.ts';
 
 import example from './example.ts';
@@ -14,7 +14,7 @@ enum Direction {
 	right,
 }
 
-class CityBlock implements Vertex {
+class CityBlock implements Vertex2d {
 	edges = new Map<CityBlock, number>();
 	traversible = true;
 
@@ -28,12 +28,6 @@ class CityBlock implements Vertex {
 
 	is( other: CityBlock ): boolean {
 		return this.x === other.x && this.y === other.y;
-	}
-}
-
-class CityBlockAStar extends AStar<CityBlock> {
-	protected heuristic( a: CityBlock, b: CityBlock ): number {
-		return Math.abs( a.x - b.x ) + Math.abs( a.y - b.y );
 	}
 }
 
@@ -131,7 +125,7 @@ function findPath( input: string, minStraight: number, maxStraight: number ) {
 		}
 	}
 
-	const pathfinder = new CityBlockAStar();
+	const pathfinder = new AStarManhattan<CityBlock>();
 
 	const start = vertexMap.get( `0,0,${Direction.up}` )![ 0 ];
 	const end = vertexMap.get( `${grid.width - 1},${grid.height - 1},${Direction.up}` )![ 0 ];

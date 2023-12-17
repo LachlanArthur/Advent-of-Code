@@ -179,6 +179,17 @@ export abstract class AStar<V extends Vertex> implements Pathfinder<V> {
 	}
 }
 
+export interface Vertex2d extends Vertex {
+	x: number;
+	y: number;
+}
+
+export class AStarManhattan<V extends Vertex2d> extends AStar<V> {
+	protected heuristic( a: V, b: V ): number {
+		return manhattanFlat( a.x, a.y, b.x, b.y );
+	}
+}
+
 export type Direction = 'up' | 'down' | 'left' | 'right';
 
 export class AStarGrid<T extends any, V extends GridVertex<T>> extends AStar<V> {
