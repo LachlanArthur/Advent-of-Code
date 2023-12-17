@@ -9,24 +9,10 @@ import input from './input.ts';
 
 function slide( grid: CharGrid, direction: Direction ) {
 	switch ( direction ) {
-		case 'up':
-		case 'down':
-			return grid.mapCols( col => {
-				if ( direction === 'up' ) {
-					return slideLeft( col );
-				} else {
-					return slideLeft( col.toReversed() ).toReversed();
-				}
-			} )
-		case 'left':
-		case 'right':
-			return grid.mapRows( row => {
-				if ( direction === 'left' ) {
-					return slideLeft( row );
-				} else {
-					return slideLeft( row.toReversed() ).toReversed();
-				}
-			} );
+		case 'up': return grid.mapCols( slideLeft );
+		case 'down': return grid.mapCols( slideRight );
+		case 'left': return grid.mapRows( slideLeft );
+		case 'right': return grid.mapRows( slideRight );
 	}
 }
 
@@ -43,6 +29,10 @@ function slideLeft( chars: string[] ): string[] {
 		}
 	}
 	return output;
+}
+
+function slideRight( chars: string[] ): string[] {
+	return slideLeft( chars.toReversed() ).toReversed();
 }
 
 function part1( input: string ) {
