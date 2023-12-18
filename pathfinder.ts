@@ -16,17 +16,6 @@ export interface Vertex {
 	is( other: Vertex ): boolean;
 }
 
-export class GridVertex<T> implements Vertex {
-	edges = new Map<GridVertex<T>, number>();
-	traversible = true;
-
-	constructor( public x: number, public y: number, public value: T ) { }
-
-	is( other: GridVertex<T> ) {
-		return this === other;
-	}
-}
-
 export interface Pathfinder<V extends Vertex> {
 	path( start: V, end: V ): V[];
 }
@@ -206,27 +195,39 @@ export class AStarManhattan<V extends Vertex2d> extends AStar<V> {
 	protected heuristic( a: V, b: V ): number {
 		return manhattanFlat( a.x, a.y, b.x, b.y );
 	}
-}
-
-export type Direction = 'up' | 'down' | 'left' | 'right';
-
-export class AStarGrid<T extends any, V extends GridVertex<T>> extends AStar<V> {
-	constructor( public vertices: V[] ) {
-		super();
-	}
-
-	/**
-	 * The best case distance estimate between two vertices
-	 */
-	protected heuristic( a: V, b: V ): number {
-		return Math.abs( a.x - b.x ) + Math.abs( a.y - b.y );
-	}
 
 	/**
 	 * Render the given path to the console
 	 */
-	display( path: V[] ) {
-		renderBrailleGrid( Array.filledFromCoordinates( path.map( vertex => [ vertex.x, vertex.y ] ), () => true, () => false ) as boolean[][] );
+	display( path: V[], lineBetweenPoints = true ) {
+		renderBrailleGrid(
+			Array.filledFromCoordinates(
+				lineBetweenPoints
+					? path.sliding( 2 ).flatMap( ( [ a, b ] ) => lineBetween( a.x, a.y, b.x, b.y ) )
+					: path.map( p => [ p.x, p.y ] ),
+				() => true,
+				() => false,
+			) as boolean[][]
+		);
+	}
+}
+
+export type Direction = 'up' | 'down' | 'left' | 'right';
+
+export class GridVertex<T> implements Vertex2d {
+	edges = new Map<GridVertex<T>, number>();
+	traversible = true;
+
+	constructor( public x: number, public y: number, public value: T ) { }
+
+	is( other: GridVertex<T> ) {
+		return this === other;
+	}
+}
+
+export class AStarGrid<T, V extends GridVertex<T>> extends AStarManhattan<V> {
+	constructor( public vertices: V[] ) {
+		super();
 	}
 
 	/**

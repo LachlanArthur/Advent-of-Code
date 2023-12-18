@@ -116,7 +116,7 @@ function findPath( input: string, minStraight: number, maxStraight: number ) {
 		throw new Error( 'Failed to find path' );
 	}
 
-	// renderBrailleGrid( Array.filledFromCoordinates( path.map( ( { x, y } ) => [ x, y ] ), () => true, () => false ) as boolean[][] );
+	// pathfinder.display( path );
 
 	return path.sliding( 2 )
 		.map( ( [ a, b ] ) => a.edges.get( b )! )
