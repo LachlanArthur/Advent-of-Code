@@ -399,7 +399,7 @@ export class CharGrid<Char extends string = string> {
 		)
 	}
 
-	replaceChar<NewChar extends string>( oldChar: Char, newChar: NewChar ): CharGrid<Char | NewChar> {
+	replaceChar<OldChar extends Char, NewChar extends string>( oldChar: OldChar, newChar: NewChar ): CharGrid<Exclude<Char, OldChar> | NewChar> {
 		return this.map( char => char === oldChar ? newChar : char );
 	}
 }
