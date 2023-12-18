@@ -7,6 +7,7 @@ import "./extensions.ts";
 import { renderBrailleGrid } from "./debug.ts";
 import { Cell, Grid, manhattanFlat } from "./grid.ts";
 import { inferno } from "./colourmaps.ts";
+import { range } from "./maths.ts";
 
 export interface Vertex {
 	edges: Map<Vertex, number>;
@@ -152,10 +153,27 @@ export abstract class AStar<V extends Vertex> implements Pathfinder<V> {
 			iteration++;
 		}
 
-		// show the final path for two seconds, then fade out for two seconds
+		// show the final path for two seconds
 		for ( let i = 0; i < 60; i++ ) {
-			drawFrame( result.value.map( getXY ) );
+			drawFrame(
+				result.value
+					.sliding( 2 )
+					.flatMap( ( [ a, b ] ) => {
+						const points: [ number, number ][] = [];
+
+						const [ ax, ay ] = getXY( a );
+						const [ bx, by ] = getXY( b );
+
+						for ( const [ x, y ] of lineBetween( ax, ay, bx, by ) ) {
+							points.push( [ x, y ] );
+						}
+
+						return points;
+					} )
+			);
 		}
+
+		// fade out for two seconds
 		for ( let i = 0; i < 60; i++ ) {
 			drawFrame( [] );
 		}
@@ -334,4 +352,27 @@ export function breadthFirstSearch<T extends Vertex>( start: T, end: T ) {
 	}
 
 	return []
+}
+
+export function lineBetween( ax: number, ay: number, bx: number, by: number ): [ number, number ][] {
+	const points: [ number, number ][] = [];
+
+	const xRange = ax - bx;
+	const yRange = ay - by;
+
+	if ( Math.abs( xRange ) > Math.abs( yRange ) ) {
+		for ( const x of range( bx, ax ) ) {
+			const y = Math.floor( ( x - bx ) / xRange * yRange + by );
+
+			points.push( [ x, y ] );
+		}
+	} else {
+		for ( const y of range( by, ay ) ) {
+			const x = Math.floor( ( y - by ) / yRange * xRange + bx );
+
+			points.push( [ x, y ] );
+		}
+	}
+
+	return points;
 }

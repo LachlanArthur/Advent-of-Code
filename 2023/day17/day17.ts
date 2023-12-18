@@ -23,12 +23,25 @@ class CityBlock implements Vertex2d {
 		public y: number,
 		public heat: number,
 		public direction: Direction,
-		public distance: number,
 	) { }
 
 	is( other: CityBlock ): boolean {
 		return this.x === other.x && this.y === other.y;
 	}
+}
+
+const directions: Direction[] = [
+	Direction.up,
+	Direction.down,
+	Direction.left,
+	Direction.right,
+];
+
+const directionOffset: Record<Direction, [ number, number ]> = {
+	[ Direction.up ]: [ 0, -1 ],
+	[ Direction.down ]: [ 0, 1 ],
+	[ Direction.left ]: [ -1, 0 ],
+	[ Direction.right ]: [ 1, 0 ],
 }
 
 function findPath( input: string, minStraight: number, maxStraight: number ) {
@@ -37,23 +50,12 @@ function findPath( input: string, minStraight: number, maxStraight: number ) {
 		char => Number( char ),
 	);
 
-	const directions: Direction[] = [
-		Direction.up,
-		Direction.down,
-		Direction.left,
-		Direction.right,
-	];
-
-	const vertexMap = new Map<string, CityBlock[]>(
-		grid.flatCells().flatMap<[ string, CityBlock[] ]>( cell => {
-			const versions: [ string, CityBlock[] ][] = [];
+	const vertexMap = new Map<string, CityBlock>(
+		grid.flatCells().flatMap<[ string, CityBlock ]>( cell => {
+			const versions: [ string, CityBlock ][] = [];
 
 			for ( const dir of directions ) {
-				const distances: CityBlock[] = [];
-				for ( let i = 1; i <= maxStraight; i++ ) {
-					distances.push( new CityBlock( cell.x, cell.y, cell.value, dir, i ) );
-				}
-				versions.push( [ `${cell.x},${cell.y},${dir}`, distances ] );
+				versions.push( [ `${cell.x},${cell.y},${dir}`, new CityBlock( cell.x, cell.y, cell.value, dir ) ] );
 			}
 
 			return versions;
@@ -61,74 +63,51 @@ function findPath( input: string, minStraight: number, maxStraight: number ) {
 	);
 
 	// Connect the edges
-	for ( const [ vertexKey, distances ] of vertexMap ) {
-		for ( const vertex of distances ) {
+	for ( const [ vertexKey, vertex ] of vertexMap ) {
+		let allowedDirections: Direction[] = [];
 
-			const up = vertexMap.get( `${vertex.x},${vertex.y - 1},${Direction.up}` ) ?? [];
-			const down = vertexMap.get( `${vertex.x},${vertex.y + 1},${Direction.down}` ) ?? [];
-			const left = vertexMap.get( `${vertex.x - 1},${vertex.y},${Direction.left}` ) ?? [];
-			const right = vertexMap.get( `${vertex.x + 1},${vertex.y},${Direction.right}` ) ?? [];
+		if ( vertex.x === 0 && vertex.y === 0 ) {
+			// The start position has no direction, it connects directly to its neighbours
+			allowedDirections = [
+				Direction.right,
+				Direction.down,
+			];
+		} else switch ( vertex.direction ) {
+			case Direction.up:
+			case Direction.down:
+				allowedDirections = [ Direction.left, Direction.right ];
+				break;
+			case Direction.left:
+			case Direction.right:
+				allowedDirections = [ Direction.up, Direction.down ];
+				break;
+		}
 
-			let edges: CityBlock[] = [];
+		for ( const dir of allowedDirections ) {
+			for ( let i = minStraight; i <= maxStraight; i++ ) {
+				const [ offsetX, offsetY ] = directionOffset[ dir ];
+				const targetX = vertex.x + ( i * offsetX );
+				const targetY = vertex.y + ( i * offsetY );
+				const target = vertexMap.get( `${targetX},${targetY},${dir}` );
+				if ( target ) {
+					let heat = 0;
 
-			if ( vertex.x === 0 && vertex.y === 0 ) {
-				// The start position has no direction or distance
-				vertex.edges.set( right[ 0 ], right[ 0 ].heat );
-				vertex.edges.set( down[ 0 ], down[ 0 ].heat );
-				continue;
-			}
-
-			switch ( vertex.direction ) {
-				case Direction.up:
-					edges = [ up[ vertex.distance ] ];
-
-					if ( vertex.distance >= minStraight ) {
-						edges.push( left[ 0 ], right[ 0 ] );
+					for ( let step = 1; step <= i; step++ ) {
+						const stepX = vertex.x + ( step * offsetX );
+						const stepY = vertex.y + ( step * offsetY );
+						heat += vertexMap.get( `${stepX},${stepY},${dir}` )!.heat;
 					}
-					break;
 
-				case Direction.down:
-					edges = [ down[ vertex.distance ] ];
-
-					if ( vertex.distance >= minStraight ) {
-						edges.push( left[ 0 ], right[ 0 ] );
-					}
-					break;
-
-				case Direction.left:
-					edges = [ left[ vertex.distance ] ];
-
-					if ( vertex.distance >= minStraight ) {
-						edges.push( up[ 0 ], down[ 0 ] );
-					}
-					break;
-
-				case Direction.right:
-					edges = [ right[ vertex.distance ] ];
-
-					if ( vertex.distance >= minStraight ) {
-						edges.push( up[ 0 ], down[ 0 ] );
-					}
-					break;
-			}
-
-			for ( const edge of edges ) {
-				if ( typeof edge === 'undefined' ) continue;
-
-				if ( edge.x === grid.width - 1 && edge.y === grid.height - 1 ) {
-					// Cannot get to the end unless it's over the minimum distance
-					if ( edge.distance < minStraight ) continue;
+					vertex.edges.set( target, heat );
 				}
-
-				vertex.edges.set( edge, edge.heat );
 			}
 		}
 	}
 
 	const pathfinder = new AStarManhattan<CityBlock>();
 
-	const start = vertexMap.get( `0,0,${Direction.up}` )![ 0 ];
-	const end = vertexMap.get( `${grid.width - 1},${grid.height - 1},${Direction.up}` )![ 0 ];
+	const start = vertexMap.get( `0,0,${Direction.up}` )!;
+	const end = vertexMap.get( `${grid.width - 1},${grid.height - 1},${Direction.up}` )!;
 
 	const path = pathfinder.path( start, end );
 	// const path = pathfinder.pathAnimation( start, end, 'animation', grid.width, grid.height, v => [ v.x, v.y ] );
@@ -139,8 +118,9 @@ function findPath( input: string, minStraight: number, maxStraight: number ) {
 
 	// renderBrailleGrid( Array.filledFromCoordinates( path.map( ( { x, y } ) => [ x, y ] ), () => true, () => false ) as boolean[][] );
 
-	path.shift(); // Exclude start from total
-	return path.map( vertex => vertex.heat ).sum();
+	return path.sliding( 2 )
+		.map( ( [ a, b ] ) => a.edges.get( b )! )
+		.sum();
 }
 
 function part1( input: string ) {
