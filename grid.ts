@@ -30,6 +30,10 @@ export function manhattanFlat( ax: number, ay: number, bx: number, by: number ):
 	return Math.abs( ax - bx ) + Math.abs( ay - by );
 }
 
+export function gridDistance( ax: number, ay: number, bx: number, by: number ): number {
+	return Math.max( Math.abs( ax - bx ) + 1, Math.abs( ay - by ) + 1 );
+}
+
 export class Cell<T> {
 	#grid!: Grid<T, Cell<T>>;
 
@@ -402,4 +406,31 @@ export class CharGrid<Char extends string = string> {
 	replaceChar<OldChar extends Char, NewChar extends string>( oldChar: OldChar, newChar: NewChar ): CharGrid<Exclude<Char, OldChar> | NewChar> {
 		return this.map( char => char === oldChar ? newChar : char );
 	}
+}
+
+export function polygonGridArea( coords: [ number, number ][] ): number {
+	// Ensure the loop is closed
+	if ( !coords.at( 0 )!.same( coords.at( -1 )! ) ) {
+		coords.push( coords.at( 0 )! );
+	}
+
+	return coords.sliding( 2 )
+		.map( ( [ [ ax, ay ], [ bx, by ] ] ) => ( ay + by ) * ( ax - bx ) )
+		.sum() * 0.5
+		// The area formula above doesn't account for the area of the cell border itself
+		// Add half the perimeter
+		+ ( polygonGridPerimeter( coords ) / 2 )
+		// And a single extra cell for the missing corner
+		+ 1;
+}
+
+export function polygonGridPerimeter( coords: [ number, number ][] ): number {
+	// Ensure the loop is closed
+	if ( !coords.at( 0 )!.same( coords.at( -1 )! ) ) {
+		coords.push( coords.at( 0 )! );
+	}
+
+	return coords.sliding( 2 )
+		.map( ( [ [ ax, ay ], [ bx, by ] ] ) => gridDistance( ax, ay, bx, by ) - 1 )
+		.sum()
 }

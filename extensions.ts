@@ -1,3 +1,4 @@
+import { normaliseCoords } from "./grid.ts";
 import { max, min, minMax } from "./maths.ts";
 
 type KeysWithValuesOfType<T, V> = keyof { [ P in keyof T as T[ P ] extends V ? P : never ]: P } & keyof T;
@@ -643,6 +644,8 @@ Array.filledFromCoordinates = function <T>(
 	blank?: ( coord: [ number, number ] ) => T,
 ): ( T | undefined )[][] {
 	const grid: T[][] = [];
+
+	coords = normaliseCoords( coords );
 
 	for ( const [ i, [ x, y ] ] of coords.entries() ) {
 		( grid[ y ] ??= [] )[ x ] = filler( [ x, y ], i );
