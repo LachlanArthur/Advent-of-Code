@@ -92,6 +92,7 @@ export abstract class AStar<V extends Vertex> implements Pathfinder<V> {
 		width: number,
 		height: number,
 		getXY: ( v: V ) => [ number, number ],
+		fps = 30,
 	): V[] {
 		const folderPath = path.resolve( folder );
 		const canvas = createCanvas( width, height );
@@ -100,7 +101,7 @@ export abstract class AStar<V extends Vertex> implements Pathfinder<V> {
 		let frameNumber = 1;
 		const previousFrames: [ number, number ][][] = [];
 		// Keep two seconds worth of points
-		const fadeFrames = 60;
+		const fadeFrames = fps * 2;
 		const drawFrame = ( newPoints: [ number, number ][] ) => {
 			ctx.save();
 
@@ -143,7 +144,7 @@ export abstract class AStar<V extends Vertex> implements Pathfinder<V> {
 		}
 
 		// show the final path for two seconds
-		for ( let i = 0; i < 60; i++ ) {
+		for ( let i = 0; i < fps * 2; i++ ) {
 			drawFrame(
 				result.value
 					.sliding( 2 )
@@ -163,14 +164,14 @@ export abstract class AStar<V extends Vertex> implements Pathfinder<V> {
 		}
 
 		// fade out for two seconds
-		for ( let i = 0; i < 60; i++ ) {
+		for ( let i = 0; i < fps * 2; i++ ) {
 			drawFrame( [] );
 		}
 
 		const ffmpegCommand = new Deno.Command( 'ffmpeg', {
 			args: [
 				'-y',
-				'-framerate', '30',
+				'-framerate', `${fps}`,
 				'-pattern_type', 'sequence',
 				'-i', `${folderPath}/image-%10d.png`,
 				'-vf', "scale=w='max(1000,iw)':h='max(1000,ih)':flags=neighbor:force_original_aspect_ratio=increase:force_divisible_by=2",
