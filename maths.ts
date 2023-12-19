@@ -1,3 +1,5 @@
+import { intervalUnionLength, splitInterval } from './interval.ts';
+
 // Can handle huge arrays
 export function max( values: number[] ) {
 	let length = values.length;
@@ -404,4 +406,42 @@ export class Polynomial {
 
 		return `(${coefficients}) / ${this.divisor}`;
 	}
+}
+
+export type Tesseract = [ number, number, number, number, number, number, number, number ];
+
+export function tesseractVolume( tesseract: Tesseract ): number {
+	const [ xMin, yMin, zMin, uMin, xMax, yMax, zMax, uMax ] = tesseract;
+
+	return ( xMax - xMin ) * ( yMax - yMin ) * ( zMax - zMin ) * ( uMax - uMin );
+}
+
+export function tesseractUnionVolume( tesseracts: Tesseract[] ): number {
+	const xBoundaries = [ ...tesseracts.pluck( '0' ), ...tesseracts.pluck( '4' ), ].unique().sortByNumberAsc();
+	const yBoundaries = [ ...tesseracts.pluck( '1' ), ...tesseracts.pluck( '5' ), ].unique().sortByNumberAsc();
+	const zBoundaries = [ ...tesseracts.pluck( '2' ), ...tesseracts.pluck( '6' ), ].unique().sortByNumberAsc();
+
+	const cubeIntervals = new Map<string, [ number, number ][]>();
+
+	for ( const [ xMin, yMin, zMin, uMin, xMax, yMax, zMax, uMax ] of tesseracts ) {
+		for ( const [ xSplitMin, xSplitMax ] of splitInterval( [ xMin, xMax ], xBoundaries ) ) {
+			for ( const [ ySplitMin, ySplitMax ] of splitInterval( [ yMin, yMax ], yBoundaries ) ) {
+				for ( const [ zSplitMin, zSplitMax ] of splitInterval( [ zMin, zMax ], zBoundaries ) ) {
+					cubeIntervals.push(
+						`${xSplitMin},${ySplitMin},${zSplitMin},${xSplitMax},${ySplitMax},${zSplitMax}`,
+						[ uMin, uMax ],
+					)
+				}
+			}
+		}
+	}
+
+	let volume = 0;
+
+	for ( const [ key, intervals ] of cubeIntervals ) {
+		const [ xMin, yMin, zMin, xMax, yMax, zMax ] = key.split( ',' ).map( Number );
+		volume += ( xMax - xMin ) * ( yMax - yMin ) * ( zMax - zMin ) * intervalUnionLength( intervals );
+	}
+
+	return volume;
 }

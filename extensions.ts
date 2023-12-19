@@ -79,6 +79,7 @@ declare global {
 		minBy<T>( this: T[], callback: ( item: T ) => number ): T | undefined;
 		aggregateColumns<T, O>( this: T[][], aggregator: ( values: T[] ) => O ): O[];
 		crossJoin<T, O>( this: T[], other: O[] ): [ T, O ][];
+		crossJoinSelf<T>( this: T[] ): [ T, T ][];
 		intersect( this: T[], other: T[] ): T[];
 	}
 
@@ -604,6 +605,10 @@ Array.prototype.crossJoin = function <T, O>( this: T[], other: O[] ): [ T, O ][]
 	}
 
 	return output;
+}
+
+Array.prototype.crossJoinSelf = function () {
+	return this.crossJoin( this );
 }
 
 Array.prototype.intersect = function <T>( this: T[], other: T[] ): T[] {
