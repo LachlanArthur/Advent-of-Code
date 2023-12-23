@@ -1,5 +1,6 @@
-import { renderBrailleGrid, renderGrid, renderSextantGrid } from "./debug.ts";
 import "./extensions.ts";
+import { renderBrailleGrid, renderGrid, renderSextantGrid } from "./debug.ts";
+import { AStarGrid, Direction, GridVertex } from "./pathfinder.ts";
 
 /**
  * Shift all the coords as close to the origin as possible
@@ -84,7 +85,7 @@ export class Grid<T, C extends Cell<T>> {
 		}
 	}
 
-	static fromString<T, C extends Cell<T>>( input: string, transform: ( char: string, x: number, y: number ) => T ) {
+	static fromString<T, C extends Cell<T>>( input: string, transform: ( char: string, x: number, y: number ) => T = char => char as T ) {
 		return new this<T, C>(
 			input.split( '\n' )
 				.map( ( line, y ) =>
@@ -136,6 +137,20 @@ export class Grid<T, C extends Cell<T>> {
 
 	renderSextant( transform = ( cell: C ) => Boolean( cell.value ) ) {
 		renderSextantGrid( this.toArray(), transform );
+	}
+
+	vertices<T, V extends GridVertex<T>>( {
+		createVertex,
+		getEdgeValue
+	}: {
+		createVertex?: ( cell: Cell<T> ) => V,
+		getEdgeValue?: ( source: V, destination: V, direction: Direction ) => number | null,
+	} = {} ) {
+		return AStarGrid.fromGrid(
+			this,
+			createVertex,
+			getEdgeValue,
+		).vertices;
 	}
 }
 

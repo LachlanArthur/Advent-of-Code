@@ -2,6 +2,7 @@ import * as fs from "https://deno.land/std@0.209.0/fs/mod.ts";
 import * as path from "https://deno.land/std@0.209.0/path/mod.ts";
 import { createCanvas } from "https://deno.land/x/canvas@v1.4.1/mod.ts";
 import { BinaryHeap } from "https://deno.land/std@0.209.0/data_structures/binary_heap.ts";
+import FIFO from "https://deno.land/x/fifo@v0.2.2/mod.ts";
 
 import "./extensions.ts";
 import { renderBrailleGrid } from "./debug.ts";
@@ -193,8 +194,16 @@ export interface Vertex2d extends Vertex {
 }
 
 export class AStarManhattan<V extends Vertex2d> extends AStar<V> {
+	constructor( public vertices: V[] ) {
+		super();
+	}
+
 	protected heuristic( a: V, b: V ): number {
 		return manhattanFlat( a.x, a.y, b.x, b.y );
+	}
+
+	getVertex( x: number, y: number ): V | undefined {
+		return this.vertices.find( v => v.x === x && v.y === y );
 	}
 
 	/**
@@ -227,10 +236,6 @@ export class GridVertex<T> implements Vertex2d {
 }
 
 export class AStarGrid<T, V extends GridVertex<T>> extends AStarManhattan<V> {
-	constructor( public vertices: V[] ) {
-		super();
-	}
-
 	/**
 	 * Create a new instance from a grid of cells
 	 *
@@ -321,14 +326,34 @@ export function dijkstra<T extends Vertex>( all: T[], start: T, end: T ): T[] {
 	return []
 }
 
-export function breadthFirstSearch<T extends Vertex>( start: T, end: T ) {
-	const queue: T[] = [ start ];
-	const seen = new Set<T>( [ start ] );
-	const parents = new Map<T, T>();
+export function* breadthFirstWalk<V extends Vertex>( start: V, exclude: V[] = [] ): Generator<[ V, V ]> {
+	const queue = new FIFO<V>();
+	const seen = new Set<V>( [ start, ...exclude ] );
+
+	queue.push( start );
+
+	while ( queue.length > 0 ) {
+		const next = queue.shift()!;
+
+		for ( const [ edge ] of next.edges as Map<V, number> ) {
+			if ( seen.has( edge ) || !edge.traversible ) continue;
+
+			yield [ next, edge ];
+
+			seen.add( edge );
+			queue.push( edge );
+		}
+	}
+
+	return []
+}
+
+export function breadthFirstSearch<V extends Vertex>( start: V, end: V, exclude: V[] = [] ) {
+	const parents = new Map<V, V>();
 
 	const reconstruct = () => {
 		let current = end;
-		const path: T[] = [ current ];
+		const path: V[] = [ current ];
 
 		while ( current = parents.get( current )! ) {
 			path.unshift( current );
@@ -337,23 +362,65 @@ export function breadthFirstSearch<T extends Vertex>( start: T, end: T ) {
 		return path;
 	}
 
-	while ( queue.length > 0 ) {
-		const next = queue.pop()!;
+	for ( const [ parent, next ] of breadthFirstWalk( start, exclude ) ) {
+		parents.set( next, parent );
 
 		if ( next.is( end ) ) {
 			return reconstruct();
 		}
-
-		for ( const [ edge, value ] of next.edges as Map<T, number> ) {
-			if ( !edge.traversible ) continue;
-			if ( seen.has( edge ) ) continue;
-			seen.add( edge );
-			parents.set( edge, next );
-			queue.unshift( edge );
-		}
 	}
 
 	return []
+}
+
+export function* depthFirstWalk<V extends Vertex>( start: V, exclude: V[] = [] ): Generator<[ V, V ]> {
+	const iteratorStack: [ V, Iterator<V> ][] = [
+		[ start, ( start.edges as Map<V, number> ).keys() ],
+	];
+	const seen = new Set<V>( [ start, ...exclude ] );
+
+	while ( iteratorStack.length > 0 ) {
+		const [ current, edgeIterator ] = iteratorStack.at( -1 )!;
+
+		let result: IteratorResult<V>;
+		if ( !( result = edgeIterator.next() ).done ) {
+			const next = result.value;
+
+			if ( seen.has( next ) || !next.traversible ) continue;
+
+			yield [ current, next ];
+
+			seen.add( next );
+			iteratorStack.push( [ next, ( next.edges as Map<V, number> ).keys() ] );
+		} else {
+			iteratorStack.pop();
+		}
+	}
+}
+
+export function depthFirstSearch<V extends Vertex>( start: V, end: V, exclude: V[] = [] ): V[] {
+	const parents = new Map<V, V>();
+
+	const reconstruct = () => {
+		let current = end;
+		const path: V[] = [ current ];
+
+		while ( current = parents.get( current )! ) {
+			path.unshift( current );
+		}
+
+		return path;
+	}
+
+	for ( const [ parent, next ] of depthFirstWalk( start, exclude ) ) {
+		parents.set( next, parent );
+
+		if ( next.is( end ) ) {
+			return reconstruct();
+		}
+	}
+
+	return [];
 }
 
 export function lineBetween( ax: number, ay: number, bx: number, by: number ): [ number, number ][] {
@@ -377,4 +444,234 @@ export function lineBetween( ax: number, ay: number, bx: number, by: number ): [
 	}
 
 	return points;
+}
+
+export function bellmanFord<V extends Vertex>( vertices: V[], start: V ) {
+	const distance = new Map<V, number>( vertices.map( v => [ v, Infinity ] ) );
+	const predecessor = new Map<V, V | null>( vertices.map( v => [ v, null ] ) );
+	const edges: [ V, V, number ][] = [];
+
+	for ( const vertex of vertices ) {
+		for ( const [ edge, weight ] of vertex.edges as Map<V, number> ) {
+			edges.push( [ vertex, edge, weight ] );
+		}
+	}
+
+	distance.set( start, 0 );
+
+	for ( let i = 0; i < vertices.length - 1; i++ ) {
+		for ( const [ u, v, weight ] of edges ) {
+			if ( distance.get( u )! + weight < distance.get( v )! ) {
+				distance.set( v, distance.get( u )! + weight );
+				predecessor.set( v, u );
+			}
+		}
+	}
+
+	for ( let [ u, v, weight ] of edges ) {
+		if ( distance.get( u )! + weight < distance.get( v )! ) {
+			predecessor.set( v, u );
+
+			const visited = new Set<V>( [ v ] );
+			while ( !visited.has( u ) ) {
+				visited.add( u );
+				u = predecessor.get( u )!;
+			}
+
+			const negativeCycle = [ u ];
+			v = predecessor.get( u )!;
+
+			while ( v !== u ) {
+				negativeCycle.push( v );
+				v = predecessor.get( v )!;
+			}
+
+			console.error( negativeCycle );
+			throw new Error( 'Negative cycle found' );
+		}
+	}
+
+	return {
+		distance,
+		predecessor,
+	}
+}
+
+
+export type SimplifyGraphOptions = {
+	pruneDeadEnds: boolean,
+	pruneNonTraversible: boolean,
+};
+
+export function simplifyGraph<V extends Vertex>(
+	vertices: V[],
+	keep: V[] = [],
+	options: SimplifyGraphOptions = {
+		pruneDeadEnds: true,
+		pruneNonTraversible: true
+	},
+) {
+	const incomingEdges = new Map<V, V[]>();
+
+	for ( const v of vertices ) {
+		for ( const [ e ] of v.edges ) {
+			incomingEdges.push( e, v );
+		}
+	}
+
+	let toRemove: number[] = [];
+	let resimplify = true;
+	while ( resimplify ) {
+		resimplify = false;
+
+		for ( const [ i, vertex ] of vertices.entries() ) {
+			if ( keep.includes( vertex ) ) continue;
+
+			if ( options.pruneNonTraversible && !vertex.traversible ) {
+				for ( const incoming of incomingEdges.get( vertex ) ?? [] ) {
+					incoming.edges.delete( vertex );
+				}
+				toRemove.push( i );
+				resimplify = true;
+				continue;
+			}
+
+			switch ( vertex.edges.size ) {
+				case 0:
+				case 1: {
+					if ( options.pruneDeadEnds ) {
+						const incoming = incomingEdges.get( vertex ) ?? [];
+
+						if ( incoming.length === 0 ) {
+							toRemove.push( i );
+							break;
+						}
+
+						if (
+							incoming.length === 1 &&
+							vertex.edges.has( incoming[ 0 ] )
+						) {
+							incoming[ 0 ].edges.delete( vertex );
+							toRemove.push( i );
+							resimplify = true;
+							break;
+						}
+					}
+
+					break;
+				}
+
+				case 2: {
+					const [ [ a, weightToA ], [ b, weightToB ] ] = vertex.edges as Map<V, number>;
+
+					if ( a.edges.has( vertex ) && b.edges.has( vertex ) ) {
+						const weightFromA = a.edges.get( vertex )!;
+						const weightFromB = b.edges.get( vertex )!;
+
+						a.edges.delete( vertex );
+						b.edges.delete( vertex );
+
+						a.edges.set( b, weightFromA + weightToB );
+						b.edges.set( a, weightFromB + weightToA );
+
+						toRemove.push( i );
+						resimplify = true;
+					}
+					break;
+				}
+
+			}
+		}
+
+		for ( const i of toRemove.sortByNumberDesc() ) {
+			vertices.splice( i, 1 );
+		}
+
+		toRemove = [];
+	}
+}
+
+export type Path<V extends Vertex> = {
+	vertices: V[],
+	/**
+	 * The sum of all edge weights on the path
+	 */
+	edgeTotal: number,
+}
+
+/**
+ * Generates every possible self-avoiding walk of a graph
+ */
+export function* allPaths<V extends Vertex>( start: V, end: V ): Generator<Path<V>> {
+	const openPaths: Path<V>[] = [ {
+		vertices: [ start ],
+		edgeTotal: pathLength( [ start ] ),
+	} ];
+
+	const endEdges = end.edges.keysArray() as V[];
+
+	while ( openPaths.length > 0 ) {
+		const { vertices: path } = openPaths.pop()!;
+		const last = path.at( -1 )!;
+
+		let next = last.edges.keysArray().without( ...path ) as V[];
+
+		const availableEndEdges = endEdges.without( ...path );
+		if ( availableEndEdges.length === 1 && availableEndEdges[ 0 ].is( last ) ) {
+			// This node is connected to the end, which has no other open edges.
+			// The current path must end here, all further paths are impossible.
+			next = [ end ];
+		}
+
+		for ( const edge of next ) {
+			const nextPathVertices = [ ...path, edge ];
+			const nextPath: Path<V> = {
+				vertices: nextPathVertices,
+				edgeTotal: pathLength( nextPathVertices ),
+			}
+
+			if ( edge.is( end ) ) {
+				yield nextPath;
+			} else {
+				// Verify that the next path can still get to the end
+				if ( breadthFirstWalk( edge, path ).find( ( [ , v ] ) => v.is( end ) ) ) {
+					openPaths.push( nextPath );
+				}
+			}
+		}
+	}
+}
+
+/**
+ * Generate paths that walk over every vertex in the graph
+ */
+export function* hamiltonianPaths<V extends Vertex>( totalVertices: number, start: V, end: V ): Generator<Path<V>> {
+	for ( const path of allPaths( start, end ) ) {
+		if ( path.vertices.length === totalVertices ) {
+			yield path;
+		}
+	}
+}
+
+export function pathLength<V extends Vertex>( path: V[] ): number {
+	let total = 0;
+
+	for ( let i = 0; i < path.length - 1; i++ ) {
+		total += path[ i ].edges.get( path[ i + 1 ] )!;
+	}
+
+	return total;
+}
+
+export function disableBacktracking<V extends Vertex>( start: V ) {
+	const open = [ start ];
+
+	while ( open.length > 0 ) {
+		const vertex = open.pop()!;
+
+		for ( const [ next ] of vertex.edges as Map<V, number> ) {
+			next.edges.delete( vertex );
+			open.push( next );
+		}
+	}
 }
