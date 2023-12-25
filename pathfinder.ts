@@ -423,6 +423,48 @@ export function depthFirstSearch<V extends Vertex>( start: V, end: V, exclude: V
 	return [];
 }
 
+export function breadthFirstSearchEdges<T>( edges: [ T, T ][], start: T, end: T ): T[] {
+	const edgeMap = new Map<T, T[]>();
+	const queue = new FIFO<T>();
+	const seen = new Set<T>( [ start ] );
+	const parents = new Map<T, T>();
+
+	for ( const [ a, b ] of edges ) {
+		edgeMap.push( a, b );
+	}
+
+	queue.push( start );
+
+	const reconstruct = () => {
+		let current = end;
+		const path: T[] = [ current ];
+
+		while ( current = parents.get( current )! ) {
+			path.unshift( current );
+		}
+
+		return path;
+	}
+
+	while ( queue.length > 0 ) {
+		const current = queue.shift()!;
+
+		for ( const edge of edgeMap.get( current ) ?? [] ) {
+			if ( seen.has( edge ) ) continue;
+			parents.set( edge, current );
+
+			if ( edge === end ) {
+				return reconstruct();
+			}
+
+			seen.add( edge );
+			queue.push( edge );
+		}
+	}
+
+	return []
+}
+
 export function lineBetween( ax: number, ay: number, bx: number, by: number ): [ number, number ][] {
 	const points: [ number, number ][] = [];
 
@@ -674,4 +716,105 @@ export function disableBacktracking<V extends Vertex>( start: V ) {
 			open.push( next );
 		}
 	}
+}
+
+export function findClusters( vertices: Vertex[] ): Vertex[][] {
+	const clusters: Vertex[][] = [];
+	const openComponents = new Set( vertices );
+
+	while ( openComponents.size > 0 ) {
+		const next = openComponents.valuesArray().pop()!;
+
+		openComponents.delete( next );
+
+		const cluster: Vertex[] = [ next ];
+		for ( const [ , edge ] of breadthFirstWalk( next ) ) {
+			cluster.push( edge );
+			openComponents.delete( edge );
+		}
+
+		clusters.push( cluster );
+	}
+
+	return clusters;
+}
+
+export function minimumCut<V extends Vertex>( vertices: V[], targetCuts = Infinity ): [ V, V ][] {
+	let best: [ V, V ][] | undefined;
+
+	for ( const [ a, b ] of vertices.combinationsLazy( 2 ) ) {
+		const bottleneck = minimumCutBetween( a, b, best?.length ?? targetCuts );
+
+		if ( !bottleneck ) continue;
+
+		if ( !best || bottleneck.length < best.length ) {
+			best = bottleneck;
+		}
+
+		if ( best.length <= targetCuts ) {
+			return best;
+		}
+	}
+
+	if ( !best ) {
+		throw new Error( 'Failed to find cut' );
+	}
+
+	return best;
+}
+
+export function minimumCutBetween<V extends Vertex>( a: V, b: V, targetCuts = Infinity ): [ V, V ][] | false {
+	if ( a.is( b ) ) {
+		return [];
+	}
+
+	let edges = allEdgesFrom( a );
+	const allVertices = new Set( edges.flat( 1 ) );
+
+	let cutCount = 0;
+	// Remove all the paths from a to b
+	while ( true ) {
+		const path = breadthFirstSearchEdges( edges, a, b );
+
+		if ( path.length === 0 ) break;
+
+		if ( cutCount > targetCuts ) return false;
+
+		for ( const [ u, v ] of path.sliding( 2, 1, false ) ) {
+			edges = edges.filter( edge => !edge.same( [ u, v ] ) && !edge.same( [ v, u ] ) );
+			edges.push( [ v, u ] );
+		}
+
+		cutCount++;
+	}
+
+	const reachable = new Set<V>();
+	const unreachable = new Set<V>();
+
+	for ( const v of allVertices ) {
+		if ( a !== v && breadthFirstSearchEdges( edges, a, v ).length === 0 ) {
+			unreachable.add( v );
+		} else {
+			reachable.add( v );
+		}
+	}
+
+	return edges.filter( ( [ a, b ] ) => (
+		( reachable.has( a ) && unreachable.has( b ) ) ||
+		( reachable.has( b ) && unreachable.has( a ) )
+	) );
+}
+
+export function allEdgesFrom<V extends Vertex>( start: V ) {
+	const edges: [ V, V ][] = ( start.edges as Map<V, number> ).keysArray()
+		.filter( edge => edge.traversible )
+		.map( edge => [ start, edge ] );
+
+	for ( const [ , v ] of breadthFirstWalk( start ) ) {
+		for ( const [ edge ] of v.edges as Map<V, number> ) {
+			edges.push( [ v, edge ] );
+		}
+	}
+
+	return edges;
 }
