@@ -12,7 +12,7 @@ type Guard = {
 	d: Direction;
 }
 
-function part1( input: string ) {
+function walk( input: string, obstacle?: { x: number, y: number } ) {
 	const grid = Grid.fromString( input );
 
 	const guardCell = grid.findCell( cell => cell.value === '^' )!;
@@ -24,12 +24,24 @@ function part1( input: string ) {
 		d: 'up',
 	};
 
-	const path: { x: number, y: number }[] = [];
+	if ( obstacle ) {
+		grid.getCell( obstacle.x, obstacle.y )!.value = '#';
+	}
+
+	const been = new Set<string>();
+	const path = new Set<string>();
 
 	while ( true ) {
 		const { x, y, d } = guard;
+		const beenKey = `${x},${y}`;
+		const pathKey = `${x},${y},${d}`;
 
-		path.push( { x, y } );
+		if ( path.has( pathKey ) ) {
+			return null;
+		}
+
+		path.add( pathKey );
+		been.add( beenKey );
 
 		const inFront = grid.getCell( x, y )![ d ];
 
@@ -53,19 +65,35 @@ function part1( input: string ) {
 		}
 	}
 
-	return path.map( ( { x, y } ) => `${x},${y}` )
-		.countUnique()
-		.size
+	return { been, path };
+}
+
+function part1( input: string ) {
+	const { been } = walk( input )!;
+
+	return been.size;
 }
 
 bench( 'part 1 example', () => part1( example ), 41 );
 
 bench( 'part 1 input', () => part1( input ) );
 
-// function part2( input: string ) {
+function part2( input: string ) {
+	const { been } = walk( input )!;
 
-// }
+	const loopObstacles: { x: number, y: number }[] = [];
 
-// bench( 'part 2 example', () => part2( example ), 6 );
+	for ( const step of been ) {
+		const [ x, y ] = step.split( ',' ).map( Number );
 
-// bench( 'part 2 input', () => part2( input ) );
+		if ( walk( input, { x, y } ) === null ) {
+			loopObstacles.push( { x, y } );
+		}
+	}
+
+	return loopObstacles.length;
+}
+
+bench( 'part 2 example', () => part2( example ), 6 );
+
+bench( 'part 2 input', () => part2( input ) );
