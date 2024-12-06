@@ -224,6 +224,37 @@ export class AStarManhattan<V extends Vertex2d> extends AStar<V> {
 
 export type Direction = 'up' | 'down' | 'left' | 'right';
 
+export function turn90Clockwise( direction: Direction ): Direction {
+	return ( {
+		up: 'right',
+		down: 'left',
+		left: 'up',
+		right: 'down',
+	} as Record<Direction, Direction> )[ direction ];
+}
+
+export function turn90Anticlockwise( direction: Direction ): Direction {
+	return ( {
+		up: 'left',
+		down: 'right',
+		left: 'down',
+		right: 'up',
+	} as Record<Direction, Direction> )[ direction ];
+}
+
+export function forwards( x: number, y: number, direction: Direction ): { x: number, y: number } {
+	switch ( direction ) {
+		case "up":
+			return { x: x, y: y - 1 };
+		case "down":
+			return { x: x, y: y + 1 };
+		case "left":
+			return { x: x - 1, y: y };
+		case "right":
+			return { x: x + 1, y: y };
+	}
+}
+
 export class GridVertex<T> implements Vertex2d {
 	edges = new Map<GridVertex<T>, number>();
 	traversible = true;
