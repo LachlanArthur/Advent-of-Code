@@ -2,7 +2,7 @@ import '../../extensions.ts';
 import { bench } from '../../bench.ts';
 import { Grid } from '../../grid.ts';
 import { AStarManhattan, Vertex2d } from '../../pathfinder.ts';
-import { renderBrailleGrid } from '../../debug.ts';
+import { aStarAnimation } from '../../pathfinder-animation.ts';
 
 import example from './example.ts';
 import input from './input.ts';
@@ -110,7 +110,8 @@ function findPath( input: string, minStraight: number, maxStraight: number ) {
 	const end = vertexMap.get( `${grid.width - 1},${grid.height - 1},${Direction.up}` )!;
 
 	const path = pathfinder.path( start, end );
-	// const path = pathfinder.pathAnimation( start, end, 'animation', grid.width, grid.height, v => [ v.x, v.y ] );
+
+	// aStarAnimation( pathfinder, start, end, 'animation', grid.width, grid.height, v => [ v.x, v.y ] );
 
 	if ( path.length === 0 ) {
 		throw new Error( 'Failed to find path' );
