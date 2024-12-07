@@ -35,8 +35,49 @@ export function gridDistance( ax: number, ay: number, bx: number, by: number ): 
 	return Math.max( Math.abs( ax - bx ) + 1, Math.abs( ay - by ) + 1 );
 }
 
+export type CellDirectionKing =
+	| 'up'
+	| 'down'
+	| 'left'
+	| 'right'
+
+export type CellDirectionBishop =
+	| 'upLeft'
+	| 'upRight'
+	| 'downLeft'
+	| 'downRight'
+
+export type CellDirectionQueen =
+	| CellDirectionKing
+	| CellDirectionBishop
+
 export class Cell<T> {
 	#grid!: Grid<T, Cell<T>>;
+
+	static DIRECTIONS_KING: CellDirectionKing[] = [
+		'up',
+		'down',
+		'left',
+		'right',
+	];
+
+	static DIRECTIONS_BISHOP: CellDirectionBishop[] = [
+		'upLeft',
+		'upRight',
+		'downLeft',
+		'downRight',
+	];
+
+	static DIRECTIONS_QUEEN: CellDirectionQueen[] = [
+		'up',
+		'down',
+		'left',
+		'right',
+		'upLeft',
+		'upRight',
+		'downLeft',
+		'downRight',
+	];
 
 	constructor(
 		readonly x: number,
@@ -51,6 +92,10 @@ export class Cell<T> {
 	get down(): Cell<T> | undefined { return this.grid.getCell( this.x, this.y + 1 ) }
 	get left(): Cell<T> | undefined { return this.grid.getCell( this.x - 1, this.y ) }
 	get right(): Cell<T> | undefined { return this.grid.getCell( this.x + 1, this.y ) }
+	get upLeft(): Cell<T> | undefined { return this.grid.getCell( this.x - 1, this.y - 1 ) }
+	get upRight(): Cell<T> | undefined { return this.grid.getCell( this.x + 1, this.y - 1 ) }
+	get downLeft(): Cell<T> | undefined { return this.grid.getCell( this.x - 1, this.y + 1 ) }
+	get downRight(): Cell<T> | undefined { return this.grid.getCell( this.x + 1, this.y + 1 ) }
 
 	get index(): number { return this.y * this.grid.width + this.x }
 
@@ -113,6 +158,14 @@ export class Grid<T, C extends Cell<T>> {
 
 	findCell( predicate: ( cell: C ) => boolean ): C | undefined {
 		return this.flatCells().find( predicate );
+	}
+
+	findCells( predicate: ( cell: C ) => boolean ): C[] {
+		return this.flatCells().filter( predicate );
+	}
+
+	countCells( predicate: ( cell: C ) => boolean ): number {
+		return this.findCells( predicate ).length;
 	}
 
 	toArray(): C[][] {
