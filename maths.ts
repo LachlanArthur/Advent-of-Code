@@ -46,7 +46,7 @@ export function permutations<T>( values: T[], size: number ): T[][] {
 	// It's kinda silly, but easy
 	const totalString = ( base - 1 ).toString( base ).repeat( size );
 	const totalLength = totalString.length;
-	const total = parseInt( totalString, base );
+	const total = parseInt( totalString, base ) + 1;
 
 	const permutations = Array.filled(
 		total,
