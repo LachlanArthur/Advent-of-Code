@@ -117,16 +117,21 @@ export class Grid<T, C extends Cell<T>> {
 	readonly width: number;
 	cells: Map<number, Map<number, C>> = new Map();
 
-	constructor( cells: C[][] ) {
-		this.height = cells.length;
-		this.width = cells[ 0 ]?.length ?? 0;
+	constructor( cells: C[][] );
+	constructor( cells: C[], width: number, height: number );
+	constructor( cells: C[][] | C[], width?: number, height?: number ) {
+		if ( Array.isArray( cells[ 0 ] ) ) {
+			this.height = cells.length;
+			this.width = cells[ 0 ]?.length ?? 0;
+		} else if ( typeof height === 'number' && typeof width === 'number' ) {
+			this.height = height;
+			this.width = width;
+		} else {
+			throw new Error( 'Cannot create grid from flat array without a defined size' );
+		}
 
-		cells.flat( 1 ).forEach( cell => cell.grid = this );
-
-		for ( const row of cells ) {
-			for ( const cell of row ) {
-				this.setCell( cell );
-			}
+		for ( const cell of cells.flat( 2 ) as C[] ) {
+			this.setCell( cell );
 		}
 	}
 
