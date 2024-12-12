@@ -644,8 +644,8 @@ export function disableBacktracking<V extends Vertex>( start: V ) {
 	}
 }
 
-export function findClusters( vertices: Vertex[] ): Vertex[][] {
-	const clusters: Vertex[][] = [];
+export function findClusters<V extends Vertex>( vertices: V[] ): V[][] {
+	const clusters: V[][] = [];
 	const openComponents = new Set( vertices );
 
 	while ( openComponents.size > 0 ) {
@@ -653,7 +653,7 @@ export function findClusters( vertices: Vertex[] ): Vertex[][] {
 
 		openComponents.delete( next );
 
-		const cluster: Vertex[] = [ next ];
+		const cluster: V[] = [ next ];
 		for ( const [ , edge ] of breadthFirstWalk( next ) ) {
 			cluster.push( edge );
 			openComponents.delete( edge );

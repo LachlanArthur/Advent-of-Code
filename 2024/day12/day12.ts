@@ -34,7 +34,7 @@ bench( 'part 1 example 3', () => part1( example3 ), 1930 );
 bench( 'part 1 input', () => part1( input ) );
 
 function part2( input: string ) {
-	const grid = Grid.fromString<string, Cell<string>>( input );
+	const grid = Grid.fromString( input );
 
 	const pathfinder = AStarGrid.fromGrid(
 		grid,
