@@ -1,7 +1,6 @@
 import '../../extensions.ts';
 import { bench } from '../../bench.ts';
-import { renderBrailleCoords, renderSextantGrid } from '../../debug.ts';
-import { findClusters, Vertex2d } from '../../pathfinder.ts';
+import { renderBrailleCoords } from '../../debug.ts';
 
 import example from './example.ts';
 import input from './input.ts';
@@ -58,7 +57,7 @@ function part2( input: string, width: number, height: number ) {
 		.lines()
 		.map( line => line.match( /-?\d+/g )!.map( Number ) as Robot );
 
-	let bestCluster = 0;
+	let bestRun = 0;
 	let bestSecond = 0;
 
 	const statesSeen = new Set<string>();
@@ -73,40 +72,35 @@ function part2( input: string, width: number, height: number ) {
 
 		statesSeen.add( stateKey );
 
-		const verts = state.map<Vertex2d & { id: number }>( ( [ x, y ], id ) => ( {
-			x,
-			y,
-			id,
-			is( other ) { return other.id === this.id },
-			traversible: true,
-			edges: new Map(),
-		} ) );
+		const grid: boolean[][] = [];
 
-		const grid: Vertex2d[][] = [];
-
-		for ( const vert of verts ) {
-			grid[ vert.y ] ??= [];
-			grid[ vert.y ][ vert.x ] = vert;
+		for ( const [ x, y ] of state ) {
+			grid[ y ] ??= [];
+			grid[ y ][ x ] = true;
 		}
 
-		for ( const vert of verts ) {
-			const up = grid[ vert.y - 1 ]?.[ vert.x ];
-			const down = grid[ vert.y + 1 ]?.[ vert.x ];
-			const left = grid[ vert.y ]?.[ vert.x - 1 ];
-			const right = grid[ vert.y ]?.[ vert.x + 1 ];
+		for ( const row of grid.values() ) {
+			if ( !row ) continue;
 
-			up && vert.edges.set( up, 1 );
-			down && vert.edges.set( down, 1 );
-			left && vert.edges.set( left, 1 );
-			right && vert.edges.set( right, 1 );
-		}
+			let lastX = -2;
+			let run = 0;
 
-		const clusters = findClusters( verts );
-		const biggestCluster = clusters.pluck( 'length' ).max();
+			for ( const [ x, filled ] of row.entries() ) {
+				if ( !filled ) continue;
 
-		if ( biggestCluster > bestCluster ) {
-			bestCluster = biggestCluster;
-			bestSecond = second;
+				if ( x - lastX === 1 ) {
+					run++;
+
+					if ( run > bestRun ) {
+						bestRun = run;
+						bestSecond = second;
+					}
+				} else {
+					run = 0;
+				}
+
+				lastX = x;
+			}
 		}
 	}
 
