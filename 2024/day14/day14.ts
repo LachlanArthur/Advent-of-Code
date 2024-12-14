@@ -1,6 +1,6 @@
 import '../../extensions.ts';
 import { bench } from '../../bench.ts';
-import { renderBrailleCoords } from '../../debug.ts';
+import { renderBrailleCoords, renderSextantGrid } from '../../debug.ts';
 import { findClusters, Vertex2d } from '../../pathfinder.ts';
 
 import example from './example.ts';
@@ -8,11 +8,11 @@ import input from './input.ts';
 
 type Robot = [ number, number, number, number ];
 
-function simulate( robot: Robot, seconds: number, width: number, height: number ): [ number, number ] {
-	return [
+function simulate( robots: Robot[], seconds: number, width: number, height: number ): [ number, number ][] {
+	return robots.map( robot => [
 		( ( robot[ 0 ] + robot[ 2 ] * seconds ) % width + width ) % width,
 		( ( robot[ 1 ] + robot[ 3 ] * seconds ) % height + height ) % height,
-	]
+	] );
 }
 
 function part1( input: string, seconds: number, width: number, height: number ) {
@@ -23,10 +23,8 @@ function part1( input: string, seconds: number, width: number, height: number ) 
 	const halfWidth = Math.floor( width / 2 );
 	const halfHeight = Math.floor( height / 2 );
 
-	return robots
-		.flatMap( robot => {
-			const [ x, y ] = simulate( robot, seconds, width, height );
-
+	return simulate( robots, seconds, width, height )
+		.flatMap( ( [ x, y ] ) => {
 			if ( x < halfWidth ) {
 				if ( y < halfHeight ) {
 					return [ 'topLeft' ];
@@ -66,7 +64,7 @@ function part2( input: string, width: number, height: number ) {
 	const statesSeen = new Set<string>();
 
 	for ( let second = 0; true; second++ ) {
-		const state = robots.map( robot => simulate( robot, second, width, height ) );
+		const state = simulate( robots, second, width, height );
 		const stateKey = state.map( pos => pos.join( ',' ) ).join( ',' );
 
 		if ( statesSeen.has( stateKey ) ) {
@@ -112,7 +110,7 @@ function part2( input: string, width: number, height: number ) {
 		}
 	}
 
-	renderBrailleCoords( robots.map( robot => simulate( robot, bestSecond, width, height ) ) );
+	renderBrailleCoords( simulate( robots, bestSecond, width, height ) );
 
 	return bestSecond;
 }
