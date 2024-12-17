@@ -1,0 +1,29 @@
+{
+  "version": "4",
+  "specifiers": {
+    "jsr:@std/data-structures@^1.0.4": "1.0.4",
+    "npm:thenby@*": "1.3.4"
+  },
+  "jsr": {
+    "@std/data-structures@1.0.4": {
+      "integrity": "fa0e20c11eb9ba673417450915c750a0001405a784e2a4e0c3725031681684a0"
+    }
+  },
+  "npm": {
+    "thenby@1.3.4": {
+      "integrity": "sha512-89Gi5raiWA3QZ4b2ePcEwswC3me9JIg+ToSgtE0JWeCynLnLxNr/f9G+xfo9K+Oj4AFdom8YNJjibIARTJmapQ=="
+    }
+  },
+  "remote": {
+    "https://deno.land/std@0.209.0/data_structures/binary_heap.ts": "bd66bf48794ae526c6b06afadd0d05dad1f589314b61d264deec403eebfce4f0",
+    "https://deno.land/std@0.209.0/data_structures/comparators.ts": "fa7f9a44cea1d270098a2a5a6f8bb30c61b595c1b1f983bd67c6297d766adffa",
+    "https://deno.land/x/fifo@v0.2.2/lib/fifo.ts": "ae84d3e5ebbb5fe67986c1478c41842de70648f5dd61a5d421b62924808e14ae",
+    "https://deno.land/x/fifo@v0.2.2/lib/static.ts": "a4230d086b1e9924dcf214d7e6d82f54d3e83d5574cef7742629cc40b705e6cf",
+    "https://deno.land/x/fifo@v0.2.2/mod.ts": "7f4c7dff3f8aa58449846459375024d7258203b98012b91731262d222f94f8e6"
+  },
+  "workspace": {
+    "dependencies": [
+      "jsr:@std/data-structures@^1.0.4"
+    ]
+  }
+}

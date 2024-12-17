@@ -161,12 +161,24 @@ export class Grid<T, C extends Cell<T>> {
 		return this;
 	}
 
-	findCell( predicate: ( cell: C ) => boolean ): C | undefined {
-		return this.flatCells().find( predicate );
+	findCell( search: T ): C | undefined;
+	findCell( predicate: ( cell: C ) => boolean ): C | undefined;
+	findCell( predicate: T | ( ( cell: C ) => boolean ) ): C | undefined {
+		return this.flatCells().find(
+			typeof predicate === 'function'
+				? predicate
+				: cell => cell.value === predicate
+		);
 	}
 
-	findCells( predicate: ( cell: C ) => boolean ): C[] {
-		return this.flatCells().filter( predicate );
+	findCells( search: T ): C[];
+	findCells( predicate: ( cell: C ) => boolean ): C[];
+	findCells( predicate: T | ( ( cell: C ) => boolean ) ): C[] {
+		return this.flatCells().filter(
+			typeof predicate === 'function'
+				? predicate
+				: cell => cell.value === predicate
+		);
 	}
 
 	countCells( predicate: ( cell: C ) => boolean ): number {
