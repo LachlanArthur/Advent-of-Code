@@ -50,6 +50,12 @@ declare global {
 		sortByNumberDesc<T, K extends KeysWithValuesOfType<T, number>>( this: T[], property: K ): T[];
 		sortByNumberAsc<T>( this: T[], callback: ( item: T ) => number ): T[];
 		sortByNumberDesc<T>( this: T[], callback: ( item: T ) => number ): T[];
+		sortByStringAsc( this: string[] ): T[];
+		sortByStringDesc( this: string[] ): T[];
+		sortByStringAsc<T, K extends KeysWithValuesOfType<T, string>>( this: T[], property: K ): T[];
+		sortByStringDesc<T, K extends KeysWithValuesOfType<T, string>>( this: T[], property: K ): T[];
+		sortByStringAsc<T>( this: T[], callback: ( item: T ) => string ): T[];
+		sortByStringDesc<T>( this: T[], callback: ( item: T ) => string ): T[];
 		max( this: number[] ): number;
 		min( this: number[] ): number;
 		minMax( this: number[] ): [ number, number ];
@@ -390,6 +396,28 @@ Array.prototype.sortByNumberDesc = function <T>( this: T[], property?: string | 
 		return this.toSorted( ( a: any, b: any ): number => b[ property ] - a[ property ] );
 	} else {
 		return this.toSorted( ( a: any, b: any ): number => b - a );
+	}
+}
+
+const StringComparator = new Intl.Collator();
+
+Array.prototype.sortByStringAsc = function <T>( this: T[], property?: string | ( ( item: T ) => string ) ) {
+	if ( typeof property === 'function' ) {
+		return this.toSorted( ( a, b ): number => StringComparator.compare( property( a ), property( b ) ) );
+	} else if ( property ) {
+		return this.toSorted( ( a: any, b: any ): number => StringComparator.compare( a[ property ], b[ property ] ) );
+	} else {
+		return this.toSorted( ( a: any, b: any ): number => StringComparator.compare( a, b ) );
+	}
+}
+
+Array.prototype.sortByStringDesc = function <T>( this: T[], property?: string | ( ( item: T ) => string ) ) {
+	if ( typeof property === 'function' ) {
+		return this.toSorted( ( a, b ): number => StringComparator.compare( property( b ), property( a ) ) );
+	} else if ( property ) {
+		return this.toSorted( ( a: any, b: any ): number => StringComparator.compare( b[ property ], a[ property ] ) );
+	} else {
+		return this.toSorted( ( a: any, b: any ): number => StringComparator.compare( b, a ) );
 	}
 }
 
