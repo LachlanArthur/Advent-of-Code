@@ -86,6 +86,7 @@ declare global {
 		aggregateColumns<T, O>( this: T[][], aggregator: ( values: T[] ) => O ): O[];
 		crossJoin<T, O>( this: T[], other: O[] ): [ T, O ][];
 		crossJoinSelf<T>( this: T[] ): [ T, T ][];
+		crossJoinLazy<T, O>( this: T[], other: O[] ): Generator<[ T, O ]>;
 		intersect( this: T[], other: T[] ): T[];
 	}
 
@@ -153,6 +154,7 @@ declare global {
 		window( size: number ): IterableIterator<T[]>;
 		entries(): IterableIterator<[ number, T ]>;
 		find( predicate: ( item: T ) => boolean ): T | undefined;
+		get length(): number;
 	}
 }
 
@@ -635,6 +637,14 @@ Array.prototype.crossJoin = function <T, O>( this: T[], other: O[] ): [ T, O ][]
 	return output;
 }
 
+Array.prototype.crossJoinLazy = function* <T, O>( this: T[], other: O[] ): Generator<[ T, O ]> {
+	for ( const item of this ) {
+		for ( const otherItem of other ) {
+			yield [ item, otherItem ];
+		}
+	}
+}
+
 Array.prototype.crossJoinSelf = function () {
 	return this.crossJoin( this );
 }
@@ -985,3 +995,15 @@ IteratorPrototype.find = function <T>( this: IterableIterator<T>, predicate: ( i
 		}
 	}
 }
+
+Object.defineProperty( IteratorPrototype, 'length', {
+	enumerable: false,
+	configurable: false,
+	get() {
+		let length = 0;
+		for ( const item of this ) {
+			length++;
+		}
+		return length;
+	}
+} );
