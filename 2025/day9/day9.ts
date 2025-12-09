@@ -32,7 +32,7 @@ function part2( input: string ) {
 
 	const totalX = redTiles.pluck( '0' ).max();
 	const totalY = redTiles.pluck( '1' ).max();
-	
+
 	const perimeterIntervals = redTiles.sliding( 2 );
 	perimeterIntervals.push( perimeterIntervals[ 0 ] ); // Close the loop
 
@@ -42,6 +42,8 @@ function part2( input: string ) {
 			const [ bx, by ] = b;
 			const [ minX, maxX ] = minMax( [ ax, bx ] );
 			const [ minY, maxY ] = minMax( [ ay, by ] );
+			const width = maxX - minX + 1;
+			const height = maxY - minY + 1;
 
 			// console.group( 'Rect %o,%o -> %o,%o', minX, minY, maxX, maxY );
 
@@ -61,6 +63,76 @@ function part2( input: string ) {
 					// 	...lineBetween( pMinX, pMinY, pMaxX, pMaxY ).map( p => [ ...p, 'x' ] as [ number, number, string ] ),
 					// ] );
 
+					// If the rect has width and height > 2, check if the perimiter point is inside the rect
+					if ( width > 2 && height > 2 ) {
+						if ( p1x > minX && p1x < maxX && p1y > minY && p1y < maxY ) {
+							// console.log( 'p1 inside rect' );
+							// console.groupEnd()
+							return true;
+						}
+						if ( p2x > minX && p2x < maxX && p2y > minY && p2y < maxY ) {
+							// console.log( 'p2 inside rect' );
+							// console.groupEnd()
+							return true;
+						}
+					}
+
+					if ( p1x === p2x ) {
+						// Vertical perimeter section
+						// console.log( 'Vertical' );
+
+						if ( width <= 2 ) {
+							// console.log( 'Too thin, ok' );
+							// console.groupEnd();
+							return false;
+						}
+
+						if ( p1x > minX && p1x < maxX ) {
+							// Check vertical overlap
+							if ( pMinY >= maxY || pMaxY <= minY ) {
+								// console.log( 'Outside Y range' );
+								// console.groupEnd();
+								return false;
+							}
+
+							// console.log( 'Inside Y range & overlaps centre' );
+							// console.groupEnd();
+							return true;
+						}
+
+						// console.log( 'outside' );
+						// console.groupEnd();
+						return false;
+
+					} else {
+						// Horizontal perimiter section
+						// console.log( 'Horizontal' );
+
+						if ( height <= 2 ) {
+							// console.log( 'Too thin, ok' );
+							// console.groupEnd();
+							return false;
+						}
+
+						if ( p1y > minY && p1y < maxY ) {
+							// Check horizontal overlap
+							if ( pMinX >= maxX || pMaxX <= minX ) {
+								// console.log( 'Outside X range' );
+								// console.groupEnd();
+								return false;
+							}
+
+							// console.log( 'Inside X range & overlaps centre' );
+							// console.groupEnd();
+							return true;
+						}
+
+						// console.log( 'outside' );
+						// console.groupEnd();
+						return false;
+
+					}
+
 					// console.groupEnd();
 					return intervalsPartiallyOverlap( [ minX, maxX ], [ pMinX, pMaxX ] )
 						&& intervalsPartiallyOverlap( [ minY, maxY ], [ pMinY, pMaxY ] );
@@ -78,3 +150,4 @@ function part2( input: string ) {
 bench( 'part 2 example', () => part2( example ), 24 );
 
 bench( 'part 2 input', () => part2( input ) );
+// NOT 1562424416 too low
